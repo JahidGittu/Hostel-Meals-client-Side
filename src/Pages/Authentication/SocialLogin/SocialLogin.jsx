@@ -2,8 +2,11 @@ import React from 'react';
 import { FcGoogle } from "react-icons/fc";
 import useAuth from '../../../hooks/useAuth';
 import { useLocation, useNavigate } from 'react-router';
+import useAxios from '../../../hooks/useAxios';
 
 const SocialLogin = () => {
+
+    const axiosInstance = useAxios()
 
     const { googleSignIn } = useAuth()
 
@@ -14,8 +17,22 @@ const SocialLogin = () => {
 
     const handleGoogleSignIn = () => {
         googleSignIn()
-            .then(res => {
-                console.log(res.user)
+            .then(async (res) => {
+                const user = res.user
+                console.log(user)
+                // ⬇️ Optional: Save to DB if needed here
+                const userInfo = {
+                    name: user.displayName,
+                    photo: user.photoURL,
+                    email: user.email,
+                    role: 'user', // by default
+                }
+
+                // fetch(...)
+
+                const userRes = await axiosInstance.post('/users', userInfo)
+                console.log(userRes.data)
+
                 navigate(from)
             })
             .catch(error => {

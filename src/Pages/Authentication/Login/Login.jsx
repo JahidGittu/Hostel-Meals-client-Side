@@ -22,7 +22,6 @@ const Login = () => {
     const navigate = useNavigate();
 
 
-
     const onSubmit = (data) => {
         setLoading(true);
         signInUser(data.email, data.password)
@@ -86,7 +85,7 @@ const Login = () => {
                 </button>
                 <p className='text-xs py-5'>
                     Don't have an Account?{' '}
-                    <Link to="/register" className='text-red-400 hover:underline'>Register</Link>
+                    <Link state={{from}} to="/register" className='text-red-400 hover:underline'>Register</Link>
                 </p>
             </form>
 

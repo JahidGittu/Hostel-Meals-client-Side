@@ -8,6 +8,10 @@ import Login from '../Pages/Authentication/Login/Login';
 import Register from '../Pages/Authentication/Register/Register';
 import PrivateRoutes from '../Routes/PrivateRoutes';
 import DashLayout from '../Layouts/DashLayout';
+import AdminRoute from '../Routes/AdminRoutes';
+import Unauthorized from '../Pages/Dashboard/AdminDash/Unauthorized/Unauthorized';
+import ManageUsers from '../Pages/Dashboard/AdminDash/ManageUsers/ManageUsers';
+import AddMeal from '../Pages/Dashboard/AdminDash/AddMeal/AddMeal';
 
 
 const Router = createBrowserRouter([
@@ -40,6 +44,19 @@ const Router = createBrowserRouter([
         path: '/dashboard',
         element: <PrivateRoutes> <DashLayout></DashLayout> </PrivateRoutes>,
         children: [
+            {
+                path: 'unauthorized',
+                element: <Unauthorized />
+            },
+            {
+                path: 'manage-users',
+                element: <AdminRoute><ManageUsers></ManageUsers></AdminRoute>
+            },
+            {
+                path: 'add-meal',
+                element: <PrivateRoutes><AdminRoute><AddMeal></AddMeal></AdminRoute></PrivateRoutes>
+            }
+
         ]
     }
 ])
