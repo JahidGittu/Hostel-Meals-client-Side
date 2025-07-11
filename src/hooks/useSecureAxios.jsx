@@ -1,36 +1,37 @@
 import axios from 'axios';
 import { useEffect } from 'react';
-import useAuth from './useAuth';
+import { getAuth } from 'firebase/auth';
 
 const secureAxios = axios.create({
-    baseURL: 'http://localhost:5000',
-    withCredentials: true,
+  baseURL: 'http://localhost:5000',
+  withCredentials: true,
 });
 
 const useSecureAxios = () => {
-    const { user } = useAuth();
+  useEffect(() => {
+    const interceptor = secureAxios.interceptors.request.use(
+      async (config) => {
+        const auth = getAuth();
+        const user = auth.currentUser;
 
-    useEffect(() => {
-        const interceptor = secureAxios.interceptors.request.use(
-            (config) => {
-                if (user?.accessToken) {
-                    config.headers.Authorization = `Bearer ${user.accessToken}`;
-                }
-                return config;
-            },
-            (error) => {
-                return Promise.reject(error);
-            }
-        );
+        if (user) {
+          const token = await user.getIdToken(); // ✅ actual token
+          config.headers.Authorization = `Bearer ${token}`;
+        }
 
-        // 💥 clean up interceptor when component unmounts
-        return () => {
-            secureAxios.interceptors.request.eject(interceptor);
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
 
-        };
-    }, [user?.accessToken]);
+    return () => {
+      secureAxios.interceptors.request.eject(interceptor);
+    };
+  }, []);
 
-    return secureAxios;
+  return secureAxios;
 };
 
 export default useSecureAxios;

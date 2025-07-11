@@ -14,6 +14,8 @@ import AllMeals from '../Pages/Dashboard/AdminDash/AllMeals/AllMeals';
 import PrivateRoute from '../Routes/PrivateRoute';
 import AdminRoute from '../Routes/AdminRoute';
 import UpcomingMeals from '../Pages/Dashboard/AdminDash/UpcomingMeal/UpcomingMeals';
+import UpcomingMealsP from '../Pages/UpcomingMeals/UpcomingMealsP';
+import Meals from '../Pages/Meals/Meals';
 
 
 const Router = createBrowserRouter([
@@ -26,6 +28,14 @@ const Router = createBrowserRouter([
                 index: true,
                 element: <Home></Home>
             },
+            {
+                path: 'meals',
+                element: <Meals></Meals>
+            },
+            {
+                path: 'upcoming-meals',
+                element: <UpcomingMealsP></UpcomingMealsP>
+            }
         ]
     },
     {
