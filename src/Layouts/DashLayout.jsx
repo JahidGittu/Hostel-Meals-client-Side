@@ -101,9 +101,10 @@ const DashLayout = () => {
         {/* Sidebar */}
         <aside
           ref={sidebarRef}
-          className="bg-base-100 shadow-md transition-all duration-300 flex flex-col"
+          className="relative bg-base-100 shadow-md transition-all duration-300 flex flex-col"
           style={{ width: `${width}px`, flexShrink: 0 }}
         >
+
           {/* Collapse Toggle */}
           <button
             onClick={() => {
@@ -151,7 +152,7 @@ const DashLayout = () => {
         </aside>
 
         {/* Main content */}
-        <main className="flex flex-col flex-1 min-h-screen transition-all duration-300">
+        <main className="flex flex-col flex-1 min-h-screen transition-all duration-300 relative">
           <Navbar dashboard={true} />
           <section className="flex-1 overflow-y-auto p-6 w-full">
             <Outlet />

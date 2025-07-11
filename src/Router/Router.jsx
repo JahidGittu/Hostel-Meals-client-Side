@@ -6,12 +6,14 @@ import Home from '../Pages/Home/Home';
 import AuthLayout from '../Layouts/AuthLayout';
 import Login from '../Pages/Authentication/Login/Login';
 import Register from '../Pages/Authentication/Register/Register';
-import PrivateRoutes from '../Routes/PrivateRoutes';
 import DashLayout from '../Layouts/DashLayout';
-import AdminRoute from '../Routes/AdminRoutes';
 import Unauthorized from '../Pages/Dashboard/AdminDash/Unauthorized/Unauthorized';
 import ManageUsers from '../Pages/Dashboard/AdminDash/ManageUsers/ManageUsers';
 import AddMeal from '../Pages/Dashboard/AdminDash/AddMeal/AddMeal';
+import AllMeals from '../Pages/Dashboard/AdminDash/AllMeals/AllMeals';
+import PrivateRoute from '../Routes/PrivateRoute';
+import AdminRoute from '../Routes/AdminRoute';
+import UpcomingMeals from '../Pages/Dashboard/AdminDash/UpcomingMeal/UpcomingMeals';
 
 
 const Router = createBrowserRouter([
@@ -42,7 +44,7 @@ const Router = createBrowserRouter([
     },
     {
         path: '/dashboard',
-        element: <PrivateRoutes> <DashLayout></DashLayout> </PrivateRoutes>,
+        element: <PrivateRoute> <DashLayout></DashLayout> </PrivateRoute>,
         children: [
             {
                 path: 'unauthorized',
@@ -54,7 +56,15 @@ const Router = createBrowserRouter([
             },
             {
                 path: 'add-meal',
-                element: <PrivateRoutes><AdminRoute><AddMeal></AddMeal></AdminRoute></PrivateRoutes>
+                element: <PrivateRoute><AdminRoute><AddMeal></AddMeal></AdminRoute></PrivateRoute>
+            },
+            {
+                path: 'all-meals',
+                element: <PrivateRoute><AdminRoute> <AllMeals></AllMeals> </AdminRoute></PrivateRoute>
+            },
+            {
+                path: 'upcoming-meals',
+                element: <PrivateRoute><AdminRoute>  <UpcomingMeals></UpcomingMeals> </AdminRoute></PrivateRoute>
             }
 
         ]

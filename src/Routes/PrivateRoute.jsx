@@ -3,7 +3,7 @@ import useAuth from '../hooks/useAuth';
 import Loading from '../Pages/Shared/Loading/Loading';
 import { Navigate, useLocation } from 'react-router';
 
-const PrivateRoutes = ({ children }) => {
+const PrivateRoute = ({ children }) => {
 
     const { user, loading } = useAuth()
 
@@ -23,4 +23,4 @@ const PrivateRoutes = ({ children }) => {
     return children
 };
 
-export default PrivateRoutes;
+export default PrivateRoute;
