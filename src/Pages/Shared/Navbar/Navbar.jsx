@@ -37,7 +37,7 @@ const Navbar = ({ dashboard = false }) => {
         : 'fixed top-0 left-0 w-full z-[999]';
 
     return (
-        <div className={navbarWrapperClass}>
+        <div className={`${navbarWrapperClass}`}>
             <div className="max-w-7xl mx-auto">
                 <div
                     className={`navbar px-4 text-white transition-all duration-300

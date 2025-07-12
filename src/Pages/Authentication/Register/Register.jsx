@@ -79,13 +79,13 @@ const Register = () => {
               showConfirmButton: false,
             });
 
-            // ⬇️ Optional: Save to DB if needed here
             const userInfo = {
               name: data.name,
-              photo: imageURL,
               email: data.email,
-              role: 'user',
-            };
+              photo: imageURL,
+              badge: 'Bronze', 
+              role: 'user', 
+            }
 
             const userRes = await axiosInstance.post('/users', userInfo)
             console.log(userRes.data)
