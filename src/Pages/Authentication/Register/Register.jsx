@@ -62,16 +62,14 @@ const Register = () => {
     const imageURL = await upload(imageFile);
 
     createUser(data.email, data.password)
-      .then(async (res) => {
-        console.log(res.user);
+      .then(async () => {
         const userProfile = {
           displayName: data.name,
           photoURL: imageURL,
-        }
+        };
 
         updateUser(userProfile)
           .then(async () => {
-            navigate(from, { replace: true });
             Swal.fire({
               title: "Registration Successful!",
               icon: "success",
@@ -83,13 +81,21 @@ const Register = () => {
               name: data.name,
               email: data.email,
               photo: imageURL,
-              badge: 'Bronze', 
-              role: 'user', 
+              badge: 'Bronze',
+              role: 'user',
+            };
+
+            await axiosInstance.post('/users', userInfo);
+
+            const roleRes = await axiosInstance.get(`/users/admin/${data.email}`);
+            const isAdmin = roleRes.data?.isAdmin;
+
+            // Role অনুযায়ী redirect, কিন্তু যদি from থাকে তাহলে সেটাকে প্রাধান্য দাও
+            if (from && from !== '/') {
+              navigate(from, { replace: true });
+            } else {
+              navigate(isAdmin ? '/dashboard/admin-profile' : '/dashboard/my-profile', { replace: true });
             }
-
-            const userRes = await axiosInstance.post('/users', userInfo)
-            console.log(userRes.data)
-
           })
           .catch(err => {
             Swal.fire({
@@ -109,7 +115,8 @@ const Register = () => {
       .finally(() => {
         setLoading(false);
       });
-  }
+  };
+
 
 
   return (

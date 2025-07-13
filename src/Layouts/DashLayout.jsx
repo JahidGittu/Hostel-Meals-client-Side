@@ -19,19 +19,19 @@ const DashLayout = () => {
   const sidebarRef = useRef(null);
   const [isAdmin, isLoading] = useAdmin();
 
-  // Handle window resize for responsive sidebar width & state
+  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
-      const isNowMobile = window.innerWidth < 768;
-      setIsMobile(isNowMobile);
-      setCollapsed(isNowMobile);
-      setWidth(isNowMobile ? 70 : 240);
+      const nowMobile = window.innerWidth < 768;
+      setIsMobile(nowMobile);
+      setCollapsed(nowMobile);
+      setWidth(nowMobile ? 70 : 240);
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Drag to resize sidebar only on desktop
+  // Sidebar drag
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!isMobile && dragging) {
@@ -57,7 +57,7 @@ const DashLayout = () => {
   }, [dragging, isMobile]);
 
   const userNavItems = [
-    { to: '/dashboard/profile', label: 'My Profile', icon: <FaUser /> },
+    { to: '/dashboard/my-profile', label: 'My Profile', icon: <FaUser /> },
     { to: '/dashboard/requested-meals', label: 'Requested Meals', icon: <FaThList /> },
     { to: '/dashboard/my-reviews', label: 'My Reviews', icon: <FaComments /> },
     { to: '/dashboard/payment-history', label: 'Payment History', icon: <FaWallet /> },
@@ -83,7 +83,8 @@ const DashLayout = () => {
       to={to}
       key={to}
       className={({ isActive }) =>
-        `flex items-center space-x-3 p-3 rounded-md hover:bg-gray-400 transition-colors ${isActive ? 'bg-gray-500 font-semibold' : ''
+        `flex items-center space-x-3 p-3 rounded-md hover:bg-gray-400 transition-colors ${
+          isActive ? 'bg-gray-500 font-semibold' : ''
         }`
       }
     >
@@ -96,7 +97,6 @@ const DashLayout = () => {
 
   return (
     <div className="min-h-screen bg-base-200 text-base-content">
-      {/* Centered container with max width */}
       <div className="max-w-screen-xl mx-auto flex min-h-screen">
         {/* Sidebar */}
         <aside
@@ -104,8 +104,7 @@ const DashLayout = () => {
           className="relative bg-base-100 shadow-md transition-all duration-300 flex flex-col"
           style={{ width: `${width}px`, flexShrink: 0 }}
         >
-
-          {/* Collapse Toggle */}
+          {/* Toggle */}
           <button
             onClick={() => {
               const newCollapsed = !collapsed;
@@ -113,7 +112,6 @@ const DashLayout = () => {
               setWidth(newCollapsed ? 70 : 200);
             }}
             className="mb-4 btn btn-sm btn-ghost flex items-center justify-center w-full"
-            aria-label="Toggle Sidebar"
           >
             {collapsed ? <FaChevronRight /> : <FaChevronLeft />}
           </button>
@@ -129,29 +127,28 @@ const DashLayout = () => {
               <>
                 <p className="text-sm font-medium mt-1 truncate">{user?.displayName || 'User'}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                <p className="text-xs mt-1 font-semibold">
-                  {isLoading ? 'Loading...' : isAdmin ? 'Admin' : 'User'}
-                </p>
-
+                <p className="text-xs mt-1 font-semibold">{isAdmin ? 'Admin' : 'User'}</p>
               </>
             )}
           </div>
 
-          {/* Navigation Links */}
-          <nav className="flex flex-col space-y-2 px-2">{navItems.map(navItem)}</nav>
+          {/* Links */}
+          <nav className="flex flex-col space-y-2 px-2">
+            {navItems.map(navItem)}
+          </nav>
 
-          {/* Resize handle only on desktop */}
+          {/* Drag bar */}
           {!isMobile && (
             <div
               onMouseDown={() => setDragging(true)}
-              title="Drag to resize sidebar"
-              className={`w-1 cursor-col-resize h-full absolute right-0 top-0 z-10 transition-colors ${dragging ? 'bg-indigo-500' : 'hover:bg-indigo-300'
-                }`}
+              className={`w-1 cursor-col-resize h-full absolute right-0 top-0 z-10 ${
+                dragging ? 'bg-indigo-500' : 'hover:bg-indigo-300'
+              }`}
             />
           )}
         </aside>
 
-        {/* Main content */}
+        {/* Main */}
         <main className="flex flex-col flex-1 min-h-screen transition-all duration-300 relative">
           <Navbar dashboard={true} />
           <section className="flex-1 overflow-y-auto p-6 w-full">

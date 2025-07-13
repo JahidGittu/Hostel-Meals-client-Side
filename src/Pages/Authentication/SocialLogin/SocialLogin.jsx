@@ -6,43 +6,47 @@ import useAxios from '../../../hooks/useAxios';
 
 const SocialLogin = () => {
 
-    const axiosInstance = useAxios()
+    const axiosInstance = useAxios();
 
-    const { googleSignIn } = useAuth()
+    const { googleSignIn } = useAuth();
 
     const location = useLocation();
     const navigate = useNavigate();
-    const from = location?.state || "/"
-
+    const from = location?.state || "/";
 
     const handleGoogleSignIn = () => {
         googleSignIn()
             .then(async (res) => {
-                const user = res.user
-                console.log(user)
-                // ⬇️ Optional: Save to DB if needed here
+                const user = res.user;
+                console.log(user);
+
+                // Optional: Save user info to your DB
                 const userInfo = {
                     name: user.displayName,
                     photo: user.photoURL,
                     email: user.email,
-                    role: 'user', // by default
+                    role: 'user',
+                    badge: 'Bronze',
+                };
+
+                try {
+                    const userRes = await axiosInstance.post('/users', userInfo);
+                    console.log(userRes.data);
+                } catch (error) {
+                    console.error("Error saving user info:", error);
                 }
 
-                // fetch(...)
-
-                const userRes = await axiosInstance.post('/users', userInfo)
-                console.log(userRes.data)
-
-                navigate(from)
+                navigate(from);
             })
             .catch(error => {
-                console.error(error)
-            })
+                console.error(error);
+            });
     }
+
     return (
         <div className='text-center'>
             <div className="divider">OR</div>
-            {/* Google */}
+            {/* Google Login Button */}
             <button onClick={handleGoogleSignIn} className="btn bg-white text-black border-[#e5e5e5]">
                 <FcGoogle size={24} />  Login with Google
             </button>

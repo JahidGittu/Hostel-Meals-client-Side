@@ -34,10 +34,16 @@ const AuthProvider = ({ children }) => {
     }
 
 
-    const logoutUser = () => {
+    const logoutUser = async () => {
         setLoading(true);
-        return signOut(auth);
+        try {
+            await signOut(auth);
+            setUser(null); 
+        } finally {
+            setLoading(false);
+        }
     }
+
 
     useEffect(() => {
         const unSubscribe = onAuthStateChanged(auth, currentUser => {
