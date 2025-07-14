@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router'; 
+import { Link } from 'react-router';
 
 const packages = [
   {
@@ -43,6 +43,7 @@ const MembershipPage = () => {
           <Link
             key={pkg.name}
             to={`/checkout/${pkg.name}`}
+            state={{ price: pkg.price }}
             className="card bg-base-100 shadow-md p-6 hover:border-primary border transition"
           >
             <h3 className="text-xl font-semibold mb-2">

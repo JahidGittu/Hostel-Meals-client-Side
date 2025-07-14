@@ -183,6 +183,7 @@ const Meals = () => {
               ))}
             </div>
           </InfiniteScroll>
+
         </main>
       </div>
     </div>

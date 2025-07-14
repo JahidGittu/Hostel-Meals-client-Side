@@ -4,23 +4,24 @@ import Loading from '../Pages/Shared/Loading/Loading';
 import { Navigate, useLocation } from 'react-router';
 
 const PrivateRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
-    const { user, loading } = useAuth()
+  if (loading) {
+    return <Loading />;
+  }
 
-    const location = useLocation()
-    console.log(location)
+  if (!user) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }} // ✅ আগের পেজ স্টোর করো এখানে
+        replace
+      />
+    );
+  }
 
-    const from = location.pathname
-
-    if (loading) {
-        return <Loading></Loading>
-    }
-
-    if (!user) {
-        return <Navigate state={from} replace to='/login'></Navigate>
-    }
-
-    return children
+  return children;
 };
 
 export default PrivateRoute;

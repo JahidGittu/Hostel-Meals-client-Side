@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
+import { FaThumbsUp, FaHeart } from 'react-icons/fa';
+import { Tooltip } from 'react-tooltip';
 import useSecureAxios from '../../../hooks/useSecureAxios';
 import useAuth from '../../../hooks/useAuth';
-import { FaThumbsUp, FaHeart } from 'react-icons/fa';
 import Loading from '../../Shared/Loading/Loading';
-import { Tooltip } from 'react-tooltip';
 
-const MealDetails = () => {
+const UpcomingMealDetails = () => {
   const { id } = useParams();
   const secureAxios = useSecureAxios();
   const queryClient = useQueryClient();
@@ -18,28 +18,28 @@ const MealDetails = () => {
   const [likesCount, setLikesCount] = useState(0);
   const [liked, setLiked] = useState(false);
 
-  // 1) Fetch current user details
-  const { data: userDetails = {}, isLoading: userLoading } = useQuery({
+  // 1) Fetch current user (to check badge)
+  const { data: userDetails = {}, isLoading: loadingUser } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => secureAxios.get('/current/user').then(r => r.data),
     enabled: !!user?.email,
   });
 
-  // 2) Fetch meal details
+  // 2) Fetch upcoming meal details
   const {
     data: meal = {},
-    isLoading: mealLoading,
+    isLoading: loadingMeal,
     refetch: refetchMeal,
   } = useQuery({
-    queryKey: ['meal-details', id],
-    queryFn: () => secureAxios.get(`/meals/${id}`).then(r => r.data),
+    queryKey: ['upcoming-meal-details', id],
+    queryFn: () => secureAxios.get(`/upcoming-meals/${id}`).then(r => r.data),
     onSuccess: data => {
       setLikesCount(data.likes || 0);
-      setLiked(data.likedBy?.includes(user?.email));
+      setLiked((data.likedBy || []).includes(user?.email));
     },
   });
 
-  // 3) Sync `liked` & `likesCount` whenever meal or user changes
+  // 3) Keep local liked+count in sync if either `meal` or `user` changes
   useEffect(() => {
     if (meal && user?.email) {
       setLikesCount(meal.likes || 0);
@@ -47,32 +47,52 @@ const MealDetails = () => {
     }
   }, [meal, user?.email]);
 
-  // 4) Like / Unlike mutation
+  // 4) Like/unlike mutation (premium-only)
   const likeMutation = useMutation({
-    mutationFn: () => secureAxios.patch(`/meals/like/${id}`).then(r => r.data),
+    mutationFn: () => secureAxios.patch(`/upcoming-meals/like/${id}`).then(r => r.data),
     onSuccess: data => {
       setLiked(data.liked);
       setLikesCount(prev => prev + (data.liked ? 1 : -1));
-      queryClient.invalidateQueries(['meals']);
+      queryClient.invalidateQueries(['upcoming-meals']);
       refetchMeal();
     },
     onError: () => Swal.fire('Error', 'Failed to toggle like.', 'error'),
   });
 
+  const handleLike = () => {
+    if (!user) {
+      return Swal.fire('Login Required', 'Please login to like meals.', 'info');
+    }
+    if (userDetails.badge === 'Bronze') {
+      return Swal.fire('Upgrade Required', 'Only premium users can like upcoming meals.', 'warning');
+    }
+    likeMutation.mutate();
+  };
+
   // 5) Request meal mutation
   const requestMutation = useMutation({
-    mutationFn: () => secureAxios.post('/meal-requests', {
+    mutationFn: () => secureAxios.post('/upcoming-meal-requests', {
       mealId: id,
       userEmail: user.email,
       status: 'pending',
     }),
-    onSuccess: () => Swal.fire('Success', 'Meal requested!', 'success'),
-    onError: () => Swal.fire('Error', 'Already requested.', 'error'),
+    onSuccess: () => Swal.fire('Success', 'Meal requested successfully!', 'success'),
+    onError: () => Swal.fire('Error', 'You already requested this meal!', 'error'),
   });
+
+  const handleRequest = () => {
+    if (!user) {
+      return Swal.fire('Login Required', 'Please login to request meals.', 'info');
+    }
+    if (userDetails.badge === 'Bronze') {
+      return Swal.fire('Upgrade Required', 'Only premium users can request meals.', 'warning');
+    }
+    requestMutation.mutate();
+  };
 
   // 6) Review mutation
   const reviewMutation = useMutation({
-    mutationFn: () => secureAxios.post('/meal-reviews', {
+    mutationFn: () => secureAxios.post('/upcoming-meal-reviews', {
       mealId: id,
       email: user.email,
       name: userDetails.name || user.displayName,
@@ -82,38 +102,21 @@ const MealDetails = () => {
     onSuccess: () => {
       setReviewText('');
       Swal.fire('Posted', 'Review submitted!', 'success');
-      queryClient.invalidateQueries(['meal-details', id]);
+      queryClient.invalidateQueries(['upcoming-meal-details', id]);
     },
     onError: () => Swal.fire('Error', 'Failed to post review.', 'error'),
   });
 
-  // 7) Loading guard
-  if (mealLoading || userLoading) return <Loading />;
-
-  // 8) Handlers
-  // … inside MealDetails.jsx …
-
-  const handleLike = () => {
-    if (!user) {
-      return Swal.fire('Login Required', 'Please login to like meals.', 'info');
-    }
-    // NO badge check here!
-    likeMutation.mutate();
-  };
-
-  console.log(userDetails)
-
-  const handleRequest = () => {
-    if (!user) return Swal.fire('Login Required', 'Please login.', 'info');
-    if (userDetails.badge === 'Bronze')
-      return Swal.fire('Upgrade Needed', 'Only premium users can request.', 'warning');
-    requestMutation.mutate();
-  };
   const handleReview = () => reviewMutation.mutate();
+
+  // 7) Show loader while fetching
+  if (loadingMeal || loadingUser) {
+    return <Loading />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6 mt-24">
-      {/* Image + ❤️ */}
+      {/* Image + Like Count */}
       <div className="relative rounded-xl overflow-hidden mb-6">
         <img
           src={meal.image || 'https://via.placeholder.com/600x400?text=No+Image'}
@@ -126,14 +129,14 @@ const MealDetails = () => {
         </div>
       </div>
 
-      {/* Details */}
+      {/* Title & Info */}
       <h1 className="text-3xl font-bold mb-2">{meal.title}</h1>
       <p className="text-gray-600 mb-2">
         Distributor: {meal.distributorName} ({meal.distributorEmail})
       </p>
       <p className="mb-2">Ingredients: {meal.ingredients}</p>
       <p className="mb-2">Rating: ⭐ {meal.rating || 0}</p>
-      <p className="mb-4 whitespace-pre-line">{meal.description || 'No description.'}</p>
+      <p className="mb-4 whitespace-pre-line">{meal.description || 'No description available.'}</p>
 
       {/* Action Buttons */}
       <div className="flex gap-4 mb-6">
@@ -142,7 +145,7 @@ const MealDetails = () => {
             className={`btn btn-sm ${liked ? 'btn-primary' : 'btn-outline'}`}
             onClick={handleLike}
           >
-            {liked ? <FaHeart /> : <FaThumbsUp />}
+            <FaThumbsUp />
           </button>
         </div>
         <Tooltip id="likeTip" place="top" />
@@ -183,7 +186,6 @@ const MealDetails = () => {
         ) : (
           <p className="text-gray-500">Login to write a review.</p>
         )}
-
         <div className="space-y-4">
           {meal.reviews?.map((r, i) => (
             <div key={i} className="border p-4 rounded-md bg-base-100">
@@ -204,4 +206,4 @@ const MealDetails = () => {
   );
 };
 
-export default MealDetails;
+export default UpcomingMealDetails;

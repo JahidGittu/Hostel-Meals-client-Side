@@ -9,16 +9,17 @@ import useImageUploader from '../../../hooks/useImageUploader';
 import useAxios from '../../../hooks/useAxios';
 
 const Register = () => {
-
-  const axiosInstance = useAxios()
-
+  const axiosInstance = useAxios();
   const { createUser, setLoading, updateUser, loading } = useAuth();
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
-
   const { upload, uploading } = useImageUploader();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [previewImage, setPreviewImage] = React.useState(null);
   const [showPassword, setShowPassword] = React.useState(false);
+
+  const password = watch('password', '');
   const [passwordValidation, setPasswordValidation] = React.useState({
     hasNumber: false,
     hasUpperCase: false,
@@ -27,7 +28,18 @@ const Register = () => {
     isLongEnough: false,
   });
 
-  const password = watch('password', '');
+  const from = location?.state?.from?.pathname || null;
+
+  // Password validation
+  const validatePassword = (pwd) => {
+    return (
+      /\d/.test(pwd) &&
+      /[A-Z]/.test(pwd) &&
+      /[a-z]/.test(pwd) &&
+      /[^\w\s]/.test(pwd) &&
+      pwd.length >= 6
+    ) || "Password does not meet complexity requirements";
+  };
 
   React.useEffect(() => {
     setPasswordValidation({
@@ -39,85 +51,72 @@ const Register = () => {
     });
   }, [password]);
 
-  const validatePassword = (pwd) => {
-    return (
-      /\d/.test(pwd) &&
-      /[A-Z]/.test(pwd) &&
-      /[a-z]/.test(pwd) &&
-      /[^\w\s]/.test(pwd) &&
-      pwd.length >= 6
-    ) || "Password does not meet complexity requirements";
+  const roleBasedDashboard = (role) => {
+    if (role === 'admin') return '/dashboard/admin-profile';
+    return '/dashboard/my-profile';
   };
 
-  const location = useLocation();
-  console.log(location)
+  const isRouteAllowedForRole = (pathname, role) => {
+    const adminRoutes = ['/dashboard/admin-profile', '/dashboard/manage-users'];
+    const userRoutes = ['/dashboard/my-profile', '/dashboard/user-orders'];
 
-  const from = location?.state || "/"
-
-  const navigate = useNavigate();
+    if (role === 'admin') {
+      return !userRoutes.includes(pathname);
+    } else {
+      return !adminRoutes.includes(pathname);
+    }
+  };
 
   const onSubmit = async (data) => {
     setLoading(true);
-    const imageFile = data.photo[0];
-    const imageURL = await upload(imageFile);
+    try {
+      const imageFile = data.photo[0];
+      const imageURL = await upload(imageFile);
 
-    createUser(data.email, data.password)
-      .then(async () => {
-        const userProfile = {
-          displayName: data.name,
-          photoURL: imageURL,
-        };
-
-        updateUser(userProfile)
-          .then(async () => {
-            Swal.fire({
-              title: "Registration Successful!",
-              icon: "success",
-              timer: 2000,
-              showConfirmButton: false,
-            });
-
-            const userInfo = {
-              name: data.name,
-              email: data.email,
-              photo: imageURL,
-              badge: 'Bronze',
-              role: 'user',
-            };
-
-            await axiosInstance.post('/users', userInfo);
-
-            const roleRes = await axiosInstance.get(`/users/admin/${data.email}`);
-            const isAdmin = roleRes.data?.isAdmin;
-
-            // Role অনুযায়ী redirect, কিন্তু যদি from থাকে তাহলে সেটাকে প্রাধান্য দাও
-            if (from && from !== '/') {
-              navigate(from, { replace: true });
-            } else {
-              navigate(isAdmin ? '/dashboard/admin-profile' : '/dashboard/my-profile', { replace: true });
-            }
-          })
-          .catch(err => {
-            Swal.fire({
-              title: "Update Failed!",
-              icon: "error",
-              text: err.message,
-            });
-          });
-      })
-      .catch(err => {
-        Swal.fire({
-          title: "Registration Failed!",
-          icon: "error",
-          text: err.message,
-        });
-      })
-      .finally(() => {
-        setLoading(false);
+      await createUser(data.email, data.password);
+      await updateUser({
+        displayName: data.name,
+        photoURL: imageURL,
       });
+
+      // Save user to DB
+      const userInfo = {
+        name: data.name,
+        email: data.email,
+        photo: imageURL,
+        badge: 'Bronze',
+        role: 'user',
+      };
+      await axiosInstance.post('/users', userInfo);
+
+      // Get role
+      const roleRes = await axiosInstance.get(`/users/admin/${data.email}`);
+      const isAdmin = roleRes.data?.isAdmin;
+      const role = isAdmin ? 'admin' : 'user';
+
+      Swal.fire({
+        title: "Registration Successful!",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      // Navigate by permission
+      if (from && isRouteAllowedForRole(from, role)) {
+        navigate(from, { replace: true });
+      } else {
+        navigate(roleBasedDashboard(role), { replace: true });
+      }
+    } catch (err) {
+      Swal.fire({
+        title: "Registration Failed!",
+        icon: "error",
+        text: err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-
 
   return (
     <div className='card bg-base-200 w-full max-w-sm shrink-0 shadow-2xl p-8'>
@@ -125,17 +124,15 @@ const Register = () => {
         <fieldset className="fieldset">
           <h1 className='text-4xl font-bold text-center pb-5'>Register Now!</h1>
 
-          {/* Name Field */}
           <label className="label">Your Name</label>
           <input
             type="text"
             {...register('name', { required: "Name is required" })}
-            className="input focus:outline-none focus:border-gray-600"
+            className="input"
             placeholder="Your Name"
           />
           {errors.name && <p className='text-red-500'>{errors.name.message}</p>}
 
-          {/* Photo Upload Field */}
           <label className="label">Your Photo</label>
           <input
             type="file"
@@ -150,27 +147,23 @@ const Register = () => {
             className="file-input file-input-bordered w-full"
           />
           {errors.photo && <p className='text-red-500'>{errors.photo.message}</p>}
-
-          {/* Preview Image */}
           {previewImage && (
             <img
               src={previewImage}
-              alt="Profile Preview"
-              className="w-24 h-24 rounded-full mt-2 object-cover border border-gray-300"
+              alt="Preview"
+              className="w-24 h-24 rounded-full mt-2 object-cover"
             />
           )}
 
-          {/* Email Field */}
           <label className="label">Email</label>
           <input
             type="email"
             {...register('email', { required: "Email is required" })}
-            className="input focus:outline-none focus:border-gray-600"
+            className="input"
             placeholder="Email"
           />
           {errors.email && <p className='text-red-500'>{errors.email.message}</p>}
 
-          {/* Password Field */}
           <label className="label">Password</label>
           <div className="relative">
             <input
@@ -179,21 +172,20 @@ const Register = () => {
                 required: "Password is required",
                 validate: validatePassword
               })}
-              className="input focus:outline-none focus:border-gray-600 pr-10"
+              className="input pr-10"
               placeholder="Password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900 z-50 cursor-pointer"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2"
               tabIndex={-1}
             >
-              {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
           {errors.password && <p className='text-red-500'>{errors.password.message}</p>}
 
-          {/* Password Validation Info */}
           <div className="mt-2 text-sm">
             <p className={passwordValidation.hasNumber ? 'text-green-600' : 'text-red-600'}>• At least one number</p>
             <p className={passwordValidation.hasUpperCase ? 'text-green-600' : 'text-red-600'}>• At least one uppercase letter</p>
@@ -201,8 +193,6 @@ const Register = () => {
             <p className={passwordValidation.hasSpecialChar ? 'text-green-600' : 'text-red-600'}>• At least one special character</p>
             <p className={passwordValidation.isLongEnough ? 'text-green-600' : 'text-red-600'}>• Minimum 6 characters</p>
           </div>
-
-          <div><a className="link link-hover">Forgot password?</a></div>
         </fieldset>
 
         <button type="submit" className="btn btn-neutral mt-4" disabled={loading || uploading}>
@@ -210,7 +200,8 @@ const Register = () => {
         </button>
 
         <p className='text-xs py-5'>
-          Already have an account? <Link className='text-red-400 hover:underline' to='/login'>Login</Link>
+          Already have an account?{" "}
+          <Link to="/login" state={{ from }} className="text-red-400 hover:underline">Login</Link>
         </p>
       </form>
 

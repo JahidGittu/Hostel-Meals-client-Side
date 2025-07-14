@@ -2,9 +2,9 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router';
 import useAuth from '../../../hooks/useAuth';
-import SocialLogin from '../SocialLogin/SocialLogin';
-import Swal from 'sweetalert2';
 import useSecureAxios from '../../../hooks/useSecureAxios';
+import Swal from 'sweetalert2';
+import SocialLogin from '../SocialLogin/SocialLogin';
 
 const Login = () => {
   const { signInUser, loading, setLoading } = useAuth();
@@ -19,7 +19,25 @@ const Login = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const from = location?.state || '/';
+  const from = location?.state?.from?.pathname || null;
+
+  // Role-based default route
+  const roleBasedDashboard = (role) => {
+    if (role === 'admin') return '/dashboard/admin-profile';
+    return '/dashboard/my-profile';
+  };
+
+  // Role access checker
+  const isRouteAllowedForRole = (pathname, role) => {
+    const adminRoutes = ['/dashboard/admin-profile', '/dashboard/manage-users'];
+    const userRoutes = ['/dashboard/my-profile', '/dashboard/user-orders'];
+
+    if (role === 'admin') {
+      return !userRoutes.includes(pathname);
+    } else {
+      return !adminRoutes.includes(pathname);
+    }
+  };
 
   const onSubmit = async (data) => {
     try {
@@ -27,9 +45,10 @@ const Login = () => {
       const res = await signInUser(data.email, data.password);
       const loggedInUser = res.user;
 
-      // ✅ Check role from backend
+      // Get role
       const roleRes = await secureAxios.get(`/users/admin/${loggedInUser.email}`);
       const isAdmin = roleRes.data?.isAdmin;
+      const role = isAdmin ? 'admin' : 'user';
 
       Swal.fire({
         title: 'Login Successful!',
@@ -38,12 +57,17 @@ const Login = () => {
         timer: 2000,
       });
 
-      // ✅ Redirect based on role
-      if (isAdmin) {
-        navigate('/dashboard/admin-profile', { replace: true });
+      // Redirection logic
+      if (from) {
+        if (isRouteAllowedForRole(from, role)) {
+          navigate(from, { replace: true });
+        } else {
+          navigate(roleBasedDashboard(role), { replace: true });
+        }
       } else {
-        navigate('/dashboard/my-profile', { replace: true });
+        navigate(roleBasedDashboard(role), { replace: true });
       }
+
     } catch (error) {
       console.error('Login error:', error.message);
       Swal.fire({
@@ -62,9 +86,8 @@ const Login = () => {
         <fieldset className="fieldset">
           <h1 className="text-4xl font-bold text-center pb-5">Welcome Back!</h1>
 
-          <label htmlFor="email" className="label">
-            Email
-          </label>
+          {/* Email */}
+          <label htmlFor="email" className="label">Email</label>
           <input
             id="email"
             type="email"
@@ -76,13 +99,12 @@ const Login = () => {
             <p className="text-red-500">Email Address is Required</p>
           )}
 
-          <label htmlFor="password" className="label">
-            Password
-          </label>
+          {/* Password */}
+          <label htmlFor="password" className="label">Password</label>
           <input
             id="password"
             type="password"
-            {...register('password', { minLength: 6, required: true })}
+            {...register('password', { required: true, minLength: 6 })}
             className="input focus:outline-none focus:border-gray-600"
             placeholder="Password"
           />
@@ -90,22 +112,21 @@ const Login = () => {
             <p className="text-red-500">Password is Required</p>
           )}
           {errors.password?.type === 'minLength' && (
-            <p className="text-red-500">Password must be at least 6 characters or longer</p>
+            <p className="text-red-500">Password must be at least 6 characters</p>
           )}
 
-          <div>
-            <Link to="/forgot-password" className="link link-hover">
-              Forgot password?
-            </Link>
+          <div className="mt-1">
+            <Link to="/forgot-password" className="link link-hover">Forgot password?</Link>
           </div>
         </fieldset>
 
-        <button type="submit" className="btn btn-neutral mt-4" disabled={loading}>
+        <button type="submit" className="btn btn-neutral mt-4 w-full" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
+
         <p className="text-xs py-5">
-          Don't have an Account?{' '}
-          <Link state={{ from }} to="/register" className="text-red-400 hover:underline">
+          Don't have an account?{' '}
+          <Link to="/register" state={{ from }} className="text-red-400 hover:underline">
             Register
           </Link>
         </p>
