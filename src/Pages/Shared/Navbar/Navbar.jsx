@@ -45,9 +45,7 @@ const Navbar = ({ dashboard = false }) => {
           `}>
                     {/* Left: Logo */}
                     <div className="navbar-start">
-                        <Link to="/" className="flex items-center gap-2 text-xl font-bold ">
-                            <Logo />
-                        </Link>
+                        <Logo />
                     </div>
 
                     {/* Center: Menu */}

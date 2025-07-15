@@ -23,6 +23,8 @@ import UpcomingMealsPage from '../Pages/UpcomingMeals/UpcomingMealsPage';
 import UpcomingMealDetails from '../Pages/UpcomingMeals/UpcomingMealDetails/UpcomingMealDetails';
 import CheckoutPage from '../Pages/MembershipPage/CheckoutPage/CheckoutPage';
 import RequestedMeals from '../Pages/Dashboard/StudentsDash/RequestedMeals/RequestedMeals';
+import AllReviews from '../Pages/Dashboard/AdminDash/AllReviews/AllReviews';
+import ServeMeals from '../Pages/Dashboard/AdminDash/ServeMeals/ServeMeals';
 
 
 const Router = createBrowserRouter([
@@ -96,8 +98,16 @@ const Router = createBrowserRouter([
                 element: <PrivateRoute><AdminRoute> <AllMeals></AllMeals> </AdminRoute></PrivateRoute>
             },
             {
+                path: 'all-reviews',
+                element: <PrivateRoute><AdminRoute> <AllReviews></AllReviews> </AdminRoute></PrivateRoute>
+            },
+            {
                 path: 'upcoming-meals',
                 element: <PrivateRoute><AdminRoute>  <UpcomingMeals></UpcomingMeals> </AdminRoute></PrivateRoute>
+            },
+            {
+                path: 'serve-meals',
+                element: <PrivateRoute><AdminRoute>  <ServeMeals></ServeMeals> </AdminRoute></PrivateRoute>
             },
             {
                 path: 'admin-profile',

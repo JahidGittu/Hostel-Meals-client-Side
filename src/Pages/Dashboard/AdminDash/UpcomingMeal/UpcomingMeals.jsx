@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useSecureAxios from '../../../../hooks/useSecureAxios';
 import Swal from 'sweetalert2';
@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form';
 import { Bounce, toast, ToastContainer } from 'react-toastify';
 import useAuth from '../../../../hooks/useAuth';
 import useImageUploader from '../../../../hooks/useImageUploader';
+import usePagination from '../../../../hooks/usePagination';
+
 
 const UpcomingMeals = () => {
   const secureAxios = useSecureAxios();
@@ -15,6 +17,8 @@ const UpcomingMeals = () => {
   const [showModal, setShowModal] = useState(false);
   const [preview, setPreview] = useState(null);
   const inputRef = useRef(null);
+  const [search, setSearch] = useState('');
+  const [searchDebounced, setSearchDebounced] = useState('');
 
   const {
     register,
@@ -26,13 +30,44 @@ const UpcomingMeals = () => {
     formState: { errors },
   } = useForm();
 
-  const { data: meals = [], isLoading, refetch } = useQuery({
-    queryKey: ['upcoming-meals'],
+  // Pagination hook with initial total 0 and limit 10
+  const {
+    page,
+    limit,
+    totalPages,
+    setTotal,
+    goToPage,
+    goToNextPage,
+    goToPrevPage,
+  } = usePagination({ initialTotal: 0, limit: 10 });
+
+  // Debounce search input for better UX
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchDebounced(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // React Query to fetch paginated + searched meals
+  const { data = {}, isLoading, refetch } = useQuery({
+    queryKey: ['upcoming-meals', page, searchDebounced],
     queryFn: async () => {
-      const res = await secureAxios.get('/upcoming-meals');
+      const res = await secureAxios.get(
+        `/upcoming-meals?page=${page}&limit=${limit}&search=${encodeURIComponent(searchDebounced)}`
+      );
       return res.data;
     },
+    keepPreviousData: true,
   });
+
+  const meals = data.data || [];
+  const totalCount = data.total || 0;
+
+  // Update pagination total when totalCount changes
+  useEffect(() => {
+    setTotal(totalCount);
+  }, [totalCount, setTotal]);
 
   const handlePublish = async (id) => {
     const confirm = await Swal.fire({
@@ -51,7 +86,7 @@ const UpcomingMeals = () => {
           refetch();
         }
       } catch (err) {
-        Swal.fire('Error', 'Failed to publish', err);
+        Swal.fire('Error', 'Failed to publish', err.message || err);
       }
     }
   };
@@ -98,14 +133,14 @@ const UpcomingMeals = () => {
       const res = await secureAxios.post('/upcoming-meals', meal);
       if (res.data.insertedId) {
         toast('🥳 Upcoming meal added', {
-          position: "top-right",
+          position: 'top-right',
           autoClose: 5000,
           hideProgressBar: false,
           closeOnClick: false,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
-          theme: "light",
+          theme: 'light',
           transition: Bounce,
         });
         reset();
@@ -114,33 +149,29 @@ const UpcomingMeals = () => {
         refetch();
       }
     } catch (err) {
-      toast.error('❌ Failed to add meal',err);
+      toast.error('❌ Failed to add meal', err);
     }
   };
 
   return (
     <div className="max-w-full w-full">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        transition={Bounce}
-      />
+      <ToastContainer />
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">📆 Upcoming Meals</h2>
-        <button
-          onClick={() => setShowModal(true)}
-          className="btn btn-sm btn-primary"
-        >
+        <button onClick={() => setShowModal(true)} className="btn btn-sm btn-primary">
           ➕ Add Upcoming Meal
         </button>
+      </div>
+
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+        <p className="text-sm font-medium">Total: {totalCount} upcoming meals</p>
+        <input
+          type="text"
+          placeholder="🔍 Search upcoming meal"
+          className="input input-sm input-bordered w-full sm:w-72"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <div className="overflow-x-auto rounded shadow">
@@ -171,16 +202,13 @@ const UpcomingMeals = () => {
             ) : (
               meals.map((meal) => (
                 <tr key={meal._id}>
-                  <td>{meal.title}</td>
+                  <td className='text-left'>{meal.title}</td>
                   <td>{meal.likes || 0}</td>
                   <td>{meal.category}</td>
                   <td>৳{meal.price}</td>
                   <td>{meal.distributorName}</td>
                   <td>
-                    <button
-                      onClick={() => handlePublish(meal._id)}
-                      className="btn btn-sm btn-success"
-                    >
+                    <button onClick={() => handlePublish(meal._id)} className="btn btn-sm btn-success">
                       Publish
                     </button>
                   </td>
@@ -191,19 +219,39 @@ const UpcomingMeals = () => {
         </table>
       </div>
 
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6 gap-2 flex-wrap">
+          <button className="btn btn-sm" onClick={goToPrevPage} disabled={page === 1}>
+            Prev
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => goToPage(i + 1)}
+              className={`btn btn-sm ${page === i + 1 ? 'btn-primary' : 'btn-outline'}`}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button className="btn btn-sm" onClick={goToNextPage} disabled={page === totalPages}>
+            Next
+          </button>
+        </div>
+      )}
+
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-white dark:bg-base-100 p-6 rounded shadow-md w-full max-w-2xl relative">
             <h3 className="text-lg font-bold mb-4">➕ Add Upcoming Meal</h3>
-
             <form
               onSubmit={handleSubmit(onSubmit)}
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
             >
-              {/* Title + Google search */}
+              {/* Title */}
               <div className="relative">
                 <input
                   {...register('title', { required: true })}
@@ -220,9 +268,7 @@ const UpcomingMeals = () => {
                     🔍
                   </a>
                 )}
-                {errors.title && (
-                  <span className="text-sm text-red-500">Title is required</span>
-                )}
+                {errors.title && <span className="text-sm text-red-500">Title is required</span>}
               </div>
 
               {/* Category */}
@@ -232,9 +278,7 @@ const UpcomingMeals = () => {
                   className="input input-bordered w-full"
                   placeholder="Category"
                 />
-                {errors.category && (
-                  <span className="text-sm text-red-500">Category is required</span>
-                )}
+                {errors.category && <span className="text-sm text-red-500">Category is required</span>}
               </div>
 
               {/* Price */}
@@ -245,9 +289,7 @@ const UpcomingMeals = () => {
                   className="input input-bordered w-full"
                   placeholder="Price (BDT)"
                 />
-                {errors.price && (
-                  <span className="text-sm text-red-500">Price is required</span>
-                )}
+                {errors.price && <span className="text-sm text-red-500">Price is required</span>}
               </div>
 
               {/* Image Upload */}
@@ -260,9 +302,7 @@ const UpcomingMeals = () => {
                   onChange={handleImageChange}
                   className="absolute inset-0 opacity-0 cursor-pointer"
                 />
-                {preview && (
-                  <img src={preview} alt="Preview" className="h-full object-contain" />
-                )}
+                {preview && <img src={preview} alt="Preview" className="h-full object-contain" />}
                 {errors.image && (
                   <span className="text-sm text-red-500 absolute -bottom-5 left-0">Image is required</span>
                 )}
@@ -275,9 +315,7 @@ const UpcomingMeals = () => {
                   className="textarea textarea-bordered w-full"
                   placeholder="Ingredients"
                 />
-                {errors.ingredients && (
-                  <span className="text-sm text-red-500">Ingredients required</span>
-                )}
+                {errors.ingredients && <span className="text-sm text-red-500">Ingredients required</span>}
               </div>
 
               {/* Description */}
@@ -287,25 +325,15 @@ const UpcomingMeals = () => {
                   className="textarea textarea-bordered w-full"
                   placeholder="Meal Description"
                 />
-                {errors.description && (
-                  <span className="text-sm text-red-500">Description required</span>
-                )}
+                {errors.description && <span className="text-sm text-red-500">Description required</span>}
               </div>
 
               {/* Buttons */}
               <div className="md:col-span-2 flex justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="btn btn-outline"
-                >
+                <button type="button" onClick={() => setShowModal(false)} className="btn btn-outline">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={uploading}
-                >
+                <button type="submit" className="btn btn-primary" disabled={uploading}>
                   {uploading ? 'Uploading...' : 'Submit'}
                 </button>
               </div>
@@ -313,6 +341,12 @@ const UpcomingMeals = () => {
           </div>
         </div>
       )}
+
+      <div className='flex justify-center py-10'>
+        <button onClick={() => setShowModal(true)} className="btn btn-sm btn-primary">
+          ➕ Add Upcoming Meal
+        </button>
+      </div>
     </div>
   );
 };
