@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import useAuth from '../../../hooks/useAuth';
 import useSecureAxios from '../../../hooks/useSecureAxios';
 import Swal from 'sweetalert2';
@@ -16,39 +16,18 @@ const Login = () => {
     formState: { errors },
   } = useForm();
 
-  const location = useLocation();
   const navigate = useNavigate();
-
-  const from = location?.state?.from?.pathname || null;
-
-  // Role-based default route
-  const roleBasedDashboard = (role) => {
-    if (role === 'admin') return '/dashboard/admin-profile';
-    return '/dashboard/my-profile';
-  };
-
-  // Role access checker
-  const isRouteAllowedForRole = (pathname, role) => {
-    const adminRoutes = ['/dashboard/admin-profile', '/dashboard/manage-users'];
-    const userRoutes = ['/dashboard/my-profile', '/dashboard/user-orders'];
-
-    if (role === 'admin') {
-      return !userRoutes.includes(pathname);
-    } else {
-      return !adminRoutes.includes(pathname);
-    }
-  };
 
   const onSubmit = async (data) => {
     try {
       setLoading(true);
-      const res = await signInUser(data.email, data.password);
-      const loggedInUser = res.user;
 
-      // Get role
-      const roleRes = await secureAxios.get(`/users/admin/${loggedInUser.email}`);
-      const isAdmin = roleRes.data?.isAdmin;
-      const role = isAdmin ? 'admin' : 'user';
+      // Sign in
+      const res = await signInUser(data.email, data.password);
+      const user = res.user;
+
+      // Optional: Check if user exists and get role (just to trigger JWT flow if needed)
+      await secureAxios.get(`/users/admin/${user.email}`);
 
       Swal.fire({
         title: 'Login Successful!',
@@ -57,16 +36,7 @@ const Login = () => {
         timer: 2000,
       });
 
-      // Redirection logic
-      if (from) {
-        if (isRouteAllowedForRole(from, role)) {
-          navigate(from, { replace: true });
-        } else {
-          navigate(roleBasedDashboard(role), { replace: true });
-        }
-      } else {
-        navigate(roleBasedDashboard(role), { replace: true });
-      }
+      navigate('/dashboard', { replace: true });
 
     } catch (error) {
       console.error('Login error:', error.message);
@@ -95,9 +65,7 @@ const Login = () => {
             className="input focus:outline-none focus:border-gray-600"
             placeholder="Email"
           />
-          {errors.email?.type === 'required' && (
-            <p className="text-red-500">Email Address is Required</p>
-          )}
+          {errors.email && <p className="text-red-500">Email Address is Required</p>}
 
           {/* Password */}
           <label htmlFor="password" className="label">Password</label>
@@ -126,13 +94,12 @@ const Login = () => {
 
         <p className="text-xs py-5">
           Don't have an account?{' '}
-          <Link to="/register" state={{ from }} className="text-red-400 hover:underline">
+          <Link to="/register" className="text-red-400 hover:underline">
             Register
           </Link>
         </p>
       </form>
 
-      {/* Social Login */}
       <SocialLogin />
     </div>
   );

@@ -34,7 +34,9 @@ const RequestedMeals = () => {
     enabled: !!user?.email,
   });
 
-  if (userLoading || postedLoading || upcomingLoading) {
+  const isLoading = userLoading || postedLoading || upcomingLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen -mt-24">
         <span className="loading loading-spinner loading-lg text-success"></span>
@@ -60,8 +62,13 @@ const RequestedMeals = () => {
     );
   }
 
-  // No requests
-  if (postedRequests.length === 0 && upcomingRequests.length === 0) {
+  // Combine posted + upcoming
+  const allRequests = [
+    ...postedRequests.map(r => ({ ...r, type: 'posted-meal' })),
+    ...upcomingRequests.map(r => ({ ...r, type: 'upcoming-meal' })),
+  ].sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt));
+
+  if (allRequests.length === 0) {
     return (
       <div className="text-center py-20 max-w-md mx-auto space-y-6">
         <p className="text-xl font-semibold">You have not requested any meals yet.</p>
@@ -71,12 +78,6 @@ const RequestedMeals = () => {
       </div>
     );
   }
-
-  // Combine all requests
-  const allRequests = [
-    ...postedRequests.map(r => ({ ...r, type: 'posted' })),
-    ...upcomingRequests.map(r => ({ ...r, type: 'upcoming' })),
-  ].sort((a, b) => new Date(b.requestedAt) - new Date(a.requestedAt)); // latest first
 
   return (
     <div className="p-4">
@@ -109,7 +110,6 @@ const RequestedMeals = () => {
         </table>
       </div>
     </div>
-
   );
 };
 
@@ -119,7 +119,9 @@ const RequestedMealRow = ({ request, type, queryClient, index }) => {
 
   React.useEffect(() => {
     if (!request.mealId) return setMealTitle('Unknown');
-    const endpoint = type === 'upcoming' ? '/upcoming-meals' : '/meals';
+
+    const endpoint = type === 'upcoming-meal' ? '/upcoming-meals' : '/meals';
+
     secureAxios
       .get(`${endpoint}/${request.mealId}`)
       .then(res => setMealTitle(res.data.title || 'No Title'))
@@ -128,25 +130,25 @@ const RequestedMealRow = ({ request, type, queryClient, index }) => {
 
   return (
     <tr>
-      <th className='text-center'>{index + 1}</th>
-      <td className='text-center'>
+      <th className="text-center">{index + 1}</th>
+      <td className="text-center">
         <span className="max-w-[200px] truncate block">{mealTitle}</span>
       </td>
-      <td className="capitalize text-center">{type}</td>
-      <td className='text-center'>
+      <td className="capitalize text-center">{type.replace('-', ' ')}</td>
+      <td className="text-center">
         <span
           className={`badge badge-sm ${request.status === 'approved'
             ? 'badge-success'
             : request.status === 'rejected'
-              ? 'badge-error'
-              : 'badge-warning'
-            }`}
+            ? 'badge-error'
+            : 'badge-warning'
+          }`}
         >
           {request.status}
         </span>
       </td>
-      <td className='text-center'>{new Date(request.requestedAt).toLocaleString()}</td>
-      <td className='text-center'>
+      <td className="text-center">{new Date(request.requestedAt).toLocaleString()}</td>
+      <td className="text-center">
         <div className="tooltip" data-tip="Click To Remove">
           <CancelRequestButton
             requestId={request._id}
@@ -159,8 +161,6 @@ const RequestedMealRow = ({ request, type, queryClient, index }) => {
   );
 };
 
-
-
 const CancelRequestButton = ({ requestId, type, queryClient }) => {
   const [loading, setLoading] = React.useState(false);
   const secureAxios = useSecureAxios();
@@ -168,7 +168,7 @@ const CancelRequestButton = ({ requestId, type, queryClient }) => {
   const mutation = useMutation({
     mutationFn: () =>
       secureAxios.delete(
-        type === 'upcoming'
+        type === 'upcoming-meal'
           ? `/upcoming-meal-requests/${requestId}`
           : `/meal-requests/${requestId}`
       ),

@@ -69,7 +69,11 @@ const UpcomingMeals = () => {
     setTotal(totalCount);
   }, [totalCount, setTotal]);
 
-  const handlePublish = async (id) => {
+  const handlePublish = async (meal) => {
+    if (meal.likes < 10) {
+      return Swal.fire('Not enough likes', 'Minimum 10 likes required to publish.', 'warning');
+    }
+
     const confirm = await Swal.fire({
       title: 'Publish this meal?',
       text: 'It will be moved to the meals list',
@@ -80,7 +84,7 @@ const UpcomingMeals = () => {
 
     if (confirm.isConfirmed) {
       try {
-        const res = await secureAxios.post(`/publish-meal/${id}`);
+        const res = await secureAxios.post(`/publish-meal/${meal._id}`);
         if (res.data.message) {
           Swal.fire('Published!', res.data.message, 'success');
           refetch();
@@ -90,6 +94,7 @@ const UpcomingMeals = () => {
       }
     }
   };
+
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -208,9 +213,10 @@ const UpcomingMeals = () => {
                   <td>৳{meal.price}</td>
                   <td>{meal.distributorName}</td>
                   <td>
-                    <button onClick={() => handlePublish(meal._id)} className="btn btn-sm btn-success">
+                    <button onClick={() => handlePublish(meal)} className="btn btn-sm btn-success">
                       Publish
                     </button>
+
                   </td>
                 </tr>
               ))

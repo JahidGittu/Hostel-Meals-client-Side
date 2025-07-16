@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import { FaThumbsUp, FaHeart } from 'react-icons/fa';
@@ -17,6 +17,7 @@ const UpcomingMealDetails = () => {
   const [reviewText, setReviewText] = useState('');
   const [likesCount, setLikesCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const navigate = useNavigate();
 
   // 1) Fetch current user (to check badge)
   const { data: userDetails = {}, isLoading: loadingUser } = useQuery({
@@ -64,7 +65,18 @@ const UpcomingMealDetails = () => {
       return Swal.fire('Login Required', 'Please login to like meals.', 'info');
     }
     if (userDetails.badge === 'Bronze') {
-      return Swal.fire('Upgrade Required', 'Only premium users can like upcoming meals.', 'warning');
+      return Swal.fire({
+        title: 'Upgrade Required',
+        text: 'Only premium users can like upcoming meals.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Close',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/membership');
+        }
+      });
     }
     likeMutation.mutate();
   };
@@ -85,7 +97,18 @@ const UpcomingMealDetails = () => {
       return Swal.fire('Login Required', 'Please login to request meals.', 'info');
     }
     if (userDetails.badge === 'Bronze') {
-      return Swal.fire('Upgrade Required', 'Only premium users can request meals.', 'warning');
+      return Swal.fire({
+        title: 'Upgrade Required',
+        text: 'Only premium users can request for upcoming meals.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Close',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/membership');
+        }
+      });
     }
     requestMutation.mutate();
   };
@@ -152,9 +175,8 @@ const UpcomingMealDetails = () => {
 
         <div
           data-tooltip-id="requestTip"
-          data-tooltip-content={
-            userDetails.badge === 'Bronze' ? 'Upgrade to Premium' : 'Request Meal'
-          }
+          data-tooltip-content='Request Meal'
+
         >
           <button className="btn btn-sm btn-success" onClick={handleRequest}>
             🍽️ Request Meal

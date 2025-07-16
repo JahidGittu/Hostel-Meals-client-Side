@@ -25,6 +25,10 @@ import CheckoutPage from '../Pages/MembershipPage/CheckoutPage/CheckoutPage';
 import RequestedMeals from '../Pages/Dashboard/StudentsDash/RequestedMeals/RequestedMeals';
 import AllReviews from '../Pages/Dashboard/AdminDash/AllReviews/AllReviews';
 import ServeMeals from '../Pages/Dashboard/AdminDash/ServeMeals/ServeMeals';
+import MyReviews from '../Pages/Dashboard/StudentsDash/MyReviews/MyReviews';
+import PaymentHistory from '../Pages/Dashboard/StudentsDash/PaymentHistory/PaymentHistory';
+import StudentDash from '../Pages/Dashboard/StudentsDash/StudentDash';
+import DashboardHome from '../Pages/Dashboard/DashboardHome/DashboardHome';
 
 
 const Router = createBrowserRouter([
@@ -86,6 +90,10 @@ const Router = createBrowserRouter([
                 element: <Unauthorized />
             },
             {
+                index: true,
+                element: <PrivateRoute><DashboardHome></DashboardHome></PrivateRoute>
+            },
+            {
                 path: 'manage-users',
                 element: <AdminRoute><ManageUsers></ManageUsers></AdminRoute>
             },
@@ -120,7 +128,15 @@ const Router = createBrowserRouter([
             {
                 path: 'requested-meals',
                 element: <PrivateRoute> <RequestedMeals></RequestedMeals> </PrivateRoute>
-            }
+            },
+            {
+                path: 'my-reviews',
+                element: <PrivateRoute> <MyReviews></MyReviews> </PrivateRoute>
+            },
+            {
+                path: 'payment-history',
+                element: <PrivateRoute> <PaymentHistory></PaymentHistory> </PrivateRoute>
+            },
 
         ]
     }

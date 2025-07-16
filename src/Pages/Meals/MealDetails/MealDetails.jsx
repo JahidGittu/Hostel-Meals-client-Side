@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import useSecureAxios from '../../../hooks/useSecureAxios';
@@ -17,6 +17,8 @@ const MealDetails = () => {
   const [reviewText, setReviewText] = useState('');
   const [likesCount, setLikesCount] = useState(0);
   const [liked, setLiked] = useState(false);
+
+  const navigate = useNavigate();
 
   // 1) Fetch current user details
   const { data: userDetails = {}, isLoading: userLoading } = useQuery({
@@ -105,8 +107,20 @@ const MealDetails = () => {
 
   const handleRequest = () => {
     if (!user) return Swal.fire('Login Required', 'Please login.', 'info');
-    if (userDetails.badge === 'Bronze')
-      return Swal.fire('Upgrade Needed', 'Only premium users can request.', 'warning');
+    if (userDetails.badge === 'Bronze') {
+      return Swal.fire({
+        title: 'Upgrade Needed',
+        text: 'Only premium users can request.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Close',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          navigate('/membership');
+        }
+      });
+    }
     requestMutation.mutate();
   };
   const handleReview = () => reviewMutation.mutate();

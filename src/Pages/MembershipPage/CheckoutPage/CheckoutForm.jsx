@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router'; // useLocation ইম্পোর্ট করলাম
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router'; // useLocation ইম্পোর্ট
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import Swal from 'sweetalert2';
 import useAuth from '../../../hooks/useAuth';
@@ -10,6 +10,7 @@ import {
     FaCcAmex,
     FaCcDiscover,
 } from 'react-icons/fa';
+import useAdmin from '../../../hooks/useAdmin';
 
 const CheckoutForm = ({ packageName, price, clientSecret }) => {
     const stripe = useStripe();
@@ -17,11 +18,17 @@ const CheckoutForm = ({ packageName, price, clientSecret }) => {
     const { user } = useAuth();
     const secureAxios = useSecureAxios();
     const navigate = useNavigate();
-    const location = useLocation(); 
+    const location = useLocation();
 
-    console.log(location)
-
+    const [isAdmin, isLoading] = useAdmin();
     const [processing, setProcessing] = useState(false);
+    const [redirectAfterSuccess, setRedirectAfterSuccess] = useState(false);
+
+    useEffect(() => {
+        if (redirectAfterSuccess && !isLoading) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [redirectAfterSuccess, isAdmin, isLoading, location.state, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -51,19 +58,17 @@ const CheckoutForm = ({ packageName, price, clientSecret }) => {
         }
 
         if (paymentIntent.status === 'succeeded') {
+
             await secureAxios.post('/payments', {
                 email: user.email,
                 packageName,
                 price,
                 transactionId: paymentIntent.id,
+                badge: packageName.toLowerCase(), 
             });
 
             await Swal.fire('Success', 'Membership upgraded successfully!', 'success');
-
-            // এখানে location.state থেকে redirect পাথ নেবো, নাহলে ডিফল্ট
-            const redirectPath = location.state?.from || '/dashboard/profile';
-
-            navigate(redirectPath);
+            setRedirectAfterSuccess(true); 
         }
 
         setProcessing(false);
@@ -81,7 +86,7 @@ const CheckoutForm = ({ packageName, price, clientSecret }) => {
                 <p className="text-xl font-bold text-primary">৳{price}</p>
             </div>
 
-            {/* Apple Pay style button (optional UI only) */}
+            {/* Optional Apple Pay style button */}
             <div className="text-center">
                 <button
                     type="button"
@@ -101,7 +106,7 @@ const CheckoutForm = ({ packageName, price, clientSecret }) => {
                     className="input input-bordered w-full"
                 />
 
-                {/* Address (optional input field) */}
+                {/* Address (optional) */}
                 <input
                     type="text"
                     placeholder="Street address"
@@ -140,8 +145,8 @@ const CheckoutForm = ({ packageName, price, clientSecret }) => {
                 {/* Pay Button */}
                 <button
                     type="submit"
-                    disabled={!stripe}
-                    className={processing ? "btn btn-primary w-full rounded-xl text-lg font-semibold cursor-not-allowed" : "btn btn-primary w-full rounded-xl text-lg font-semibold"}
+                    disabled={!stripe || processing}
+                    className="btn btn-primary w-full rounded-xl text-lg font-semibold"
                 >
                     {processing ? `Processing...` : `Pay ৳${price}`}
                 </button>

@@ -19,7 +19,7 @@ const AdminRoute = ({ children }) => {
 
 
     if (!isAdmin) {
-        return <Navigate to="/unauthorized" state={{ from: location.pathname }} replace />;
+        return <Navigate to="/dashboard" state={{ from: location.pathname }} replace />;
     }
 
 

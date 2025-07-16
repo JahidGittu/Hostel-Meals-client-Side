@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import useAuth from '../../../hooks/useAuth';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import SocialLogin from '../SocialLogin/SocialLogin';
 import Swal from 'sweetalert2';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -14,7 +14,6 @@ const Register = () => {
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
   const { upload, uploading } = useImageUploader();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [previewImage, setPreviewImage] = React.useState(null);
   const [showPassword, setShowPassword] = React.useState(false);
@@ -28,19 +27,7 @@ const Register = () => {
     isLongEnough: false,
   });
 
-  const from = location?.state?.from?.pathname || null;
-
-  // Password validation
-  const validatePassword = (pwd) => {
-    return (
-      /\d/.test(pwd) &&
-      /[A-Z]/.test(pwd) &&
-      /[a-z]/.test(pwd) &&
-      /[^\w\s]/.test(pwd) &&
-      pwd.length >= 6
-    ) || "Password does not meet complexity requirements";
-  };
-
+  // Password validation check
   React.useEffect(() => {
     setPasswordValidation({
       hasNumber: /\d/.test(password),
@@ -51,20 +38,14 @@ const Register = () => {
     });
   }, [password]);
 
-  const roleBasedDashboard = (role) => {
-    if (role === 'admin') return '/dashboard/admin-profile';
-    return '/dashboard/my-profile';
-  };
-
-  const isRouteAllowedForRole = (pathname, role) => {
-    const adminRoutes = ['/dashboard/admin-profile', '/dashboard/manage-users'];
-    const userRoutes = ['/dashboard/my-profile', '/dashboard/user-orders'];
-
-    if (role === 'admin') {
-      return !userRoutes.includes(pathname);
-    } else {
-      return !adminRoutes.includes(pathname);
-    }
+  const validatePassword = (pwd) => {
+    return (
+      /\d/.test(pwd) &&
+      /[A-Z]/.test(pwd) &&
+      /[a-z]/.test(pwd) &&
+      /[^\w\s]/.test(pwd) &&
+      pwd.length >= 6
+    ) || "Password does not meet complexity requirements";
   };
 
   const onSubmit = async (data) => {
@@ -79,7 +60,7 @@ const Register = () => {
         photoURL: imageURL,
       });
 
-      // Save user to DB
+      // Save to DB
       const userInfo = {
         name: data.name,
         email: data.email,
@@ -89,11 +70,6 @@ const Register = () => {
       };
       await axiosInstance.post('/users', userInfo);
 
-      // Get role
-      const roleRes = await axiosInstance.get(`/users/admin/${data.email}`);
-      const isAdmin = roleRes.data?.isAdmin;
-      const role = isAdmin ? 'admin' : 'user';
-
       Swal.fire({
         title: "Registration Successful!",
         icon: "success",
@@ -101,12 +77,7 @@ const Register = () => {
         showConfirmButton: false,
       });
 
-      // Navigate by permission
-      if (from && isRouteAllowedForRole(from, role)) {
-        navigate(from, { replace: true });
-      } else {
-        navigate(roleBasedDashboard(role), { replace: true });
-      }
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       Swal.fire({
         title: "Registration Failed!",
@@ -201,7 +172,7 @@ const Register = () => {
 
         <p className='text-xs py-5'>
           Already have an account?{" "}
-          <Link to="/login" state={{ from }} className="text-red-400 hover:underline">Login</Link>
+          <Link to="/login" className="text-red-400 hover:underline">Login</Link>
         </p>
       </form>
 
