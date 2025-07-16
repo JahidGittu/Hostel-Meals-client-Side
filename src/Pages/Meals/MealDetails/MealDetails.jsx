@@ -4,9 +4,16 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import useSecureAxios from '../../../hooks/useSecureAxios';
 import useAuth from '../../../hooks/useAuth';
-import { FaThumbsUp, FaHeart } from 'react-icons/fa';
+import { FaThumbsUp, FaHeart, FaStar } from 'react-icons/fa';  // FaStar যোগ করলাম
 import Loading from '../../Shared/Loading/Loading';
 import { Tooltip } from 'react-tooltip';
+
+const Star = ({ filled, onClick }) => (
+  <FaStar
+    onClick={onClick}
+    className={`cursor-pointer h-6 w-6 ${filled ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`}
+  />
+);
 
 const MealDetails = () => {
   const { id } = useParams();
@@ -15,19 +22,18 @@ const MealDetails = () => {
   const { user } = useAuth();
 
   const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState(0); // স্টার রেটিং স্টেট
   const [likesCount, setLikesCount] = useState(0);
   const [liked, setLiked] = useState(false);
 
   const navigate = useNavigate();
 
-  // 1) Fetch current user details
   const { data: userDetails = {}, isLoading: userLoading } = useQuery({
     queryKey: ['current-user'],
     queryFn: () => secureAxios.get('/current-user').then(r => r.data),
     enabled: !!user?.email,
   });
 
-  // 2) Fetch meal details
   const {
     data: meal = {},
     isLoading: mealLoading,
@@ -41,7 +47,6 @@ const MealDetails = () => {
     },
   });
 
-  // 3) Sync `liked` & `likesCount` whenever meal or user changes
   useEffect(() => {
     if (meal && user?.email) {
       setLikesCount(meal.likes || 0);
@@ -49,7 +54,6 @@ const MealDetails = () => {
     }
   }, [meal, user?.email]);
 
-  // 4) Like / Unlike mutation
   const likeMutation = useMutation({
     mutationFn: () => secureAxios.patch(`/meals/like/${id}`).then(r => r.data),
     onSuccess: data => {
@@ -61,7 +65,6 @@ const MealDetails = () => {
     onError: () => Swal.fire('Error', 'Failed to toggle like.', 'error'),
   });
 
-  // 5) Request meal mutation
   const requestMutation = useMutation({
     mutationFn: () => secureAxios.post('/meal-requests', {
       mealId: id,
@@ -72,38 +75,36 @@ const MealDetails = () => {
     onError: () => Swal.fire('Error', 'Already requested.', 'error'),
   });
 
-  // 6) Review mutation
   const reviewMutation = useMutation({
     mutationFn: () => secureAxios.post('/meal-reviews', {
       mealId: id,
       email: user.email,
       name: userDetails.name || user.displayName,
       review: reviewText,
+      rating, // রেটিং পাঠানো হচ্ছে
       image: userDetails.photo || user.photoURL,
     }),
     onSuccess: () => {
       setReviewText('');
+      setRating(0);
       Swal.fire('Posted', 'Review submitted!', 'success');
       queryClient.invalidateQueries(['meal-details', id]);
     },
     onError: () => Swal.fire('Error', 'Failed to post review.', 'error'),
   });
 
-  // 7) Loading guard
-  if (mealLoading || userLoading) return <Loading />;
+  const avgRating = meal.reviews?.length
+    ? (meal.reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / meal.reviews.length).toFixed(1)
+    : '0.0';
 
-  // 8) Handlers
-  // … inside MealDetails.jsx …
+  if (mealLoading || userLoading) return <Loading />;
 
   const handleLike = () => {
     if (!user) {
       return Swal.fire('Login Required', 'Please login to like meals.', 'info');
     }
-    // NO badge check here!
     likeMutation.mutate();
   };
-
-  console.log(userDetails)
 
   const handleRequest = () => {
     if (!user) return Swal.fire('Login Required', 'Please login.', 'info');
@@ -123,6 +124,7 @@ const MealDetails = () => {
     }
     requestMutation.mutate();
   };
+
   const handleReview = () => reviewMutation.mutate();
 
   return (
@@ -146,7 +148,9 @@ const MealDetails = () => {
         Distributor: {meal.distributorName} ({meal.distributorEmail})
       </p>
       <p className="mb-2">Ingredients: {meal.ingredients}</p>
-      <p className="mb-2">Rating: ⭐ {meal.rating || 0}</p>
+      <p className="mb-2">
+        Rating: <span className="text-yellow-500">⭐ {avgRating}</span> ({meal.reviews?.length || 0} reviews)
+      </p>
       <p className="mb-4 whitespace-pre-line">{meal.description || 'No description.'}</p>
 
       {/* Action Buttons */}
@@ -172,6 +176,7 @@ const MealDetails = () => {
           </button>
         </div>
         <Tooltip id="requestTip" place="top" />
+
       </div>
 
       {/* Reviews */}
@@ -186,9 +191,24 @@ const MealDetails = () => {
               value={reviewText}
               onChange={e => setReviewText(e.target.value)}
             />
+
+            {/* স্টার রেটিং */}
+            <div className="mt-2 flex items-center gap-2 select-none">
+              <span className="text-gray-600">Your Rating:</span>
+              <div className="flex space-x-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    filled={star <= rating}
+                    onClick={() => setRating(star)}
+                  />
+                ))}
+              </div>
+            </div>
+
             <button
-              className="btn btn-sm btn-primary mt-2"
-              disabled={!reviewText.trim()}
+              className="btn btn-sm btn-primary mt-3"
+              disabled={!reviewText.trim() || rating === 0}
               onClick={handleReview}
             >
               Submit Review
@@ -209,7 +229,8 @@ const MealDetails = () => {
                 />
                 <p className="font-medium">{r.name}</p>
               </div>
-              <p className="ml-11 whitespace-pre-line">{r.review}</p>
+              <p className="ml-11 whitespace-pre-line mb-1">{r.review}</p>
+              <p className="ml-11 text-sm text-yellow-500">Rating: {'⭐'.repeat(r.rating || 0)}</p>
             </div>
           ))}
         </div>

@@ -41,7 +41,7 @@ const Home = () => {
     },
   });
 
-  console.log("featured revies here",featuredReviews)
+  console.log("featured revies here", featuredReviews)
 
   // Get FAQs
   const { data: faqs = [], isLoading: loadingFaqs } = useQuery({
@@ -60,8 +60,8 @@ const Home = () => {
     <div className="space-y-12">
       <Banner />
       <CategoryTabs />
-      <MembershipPage user={currentUser} />
-      <PopularMeals meals={popularMeals} />
+      <MembershipPage currentUser={currentUser} />
+      <PopularMeals popularMeals={popularMeals} />
       <TestimonialsSection featuredReviews={featuredReviews} />
       {/* <FaqSection faqs={faqs} /> */}
     </div>

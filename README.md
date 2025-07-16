@@ -1,4 +1,4 @@
-# 🏨 HostelMate – Hostel Management System (Client)
+# 🏨 Hostel Meals – Hostel Management System (Client)
 
 A complete MERN-based University Hostel Meal & Review Management System.  
 Built to manage daily meals, collect student reviews, and streamline admin operations.  
@@ -8,13 +8,13 @@ This is the **frontend** repository built using **React, Tailwind CSS, Firebase*
 
 ## 🚀 Live Website
 
-🌐 **Live URL:** [https://hostelmate.web.app](https://hostelmate.web.app)
+🌐 **Live URL:** [https://HostelMeals.web.app](https://HostelMeals.web.app)
 
 ---
 
 ## 👨‍💼 Admin Credentials
 
-- ✉️ Email: `admin@gittu.com`
+- ✉️ Email: `code@gittu.com`
 - 🔐 Password: `123456`
 
 Use these to test admin functionalities like meal creation, user management, etc.

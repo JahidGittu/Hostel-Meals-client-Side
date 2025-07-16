@@ -53,7 +53,7 @@ const AdminDash = () => {
         <StatCard icon={<FaUtensils />} label="Your Posted Meals" value={totalMeals} gradient="from-purple-500 to-purple-700" />
         <StatCard icon={<FaUsers />} label="Total Users" value={totalUsers} gradient="from-blue-500 to-blue-700" />
         <StatCard icon={<FaHourglassHalf />} label="Pending Meal Requests" value={pendingRequests} gradient="from-orange-500 to-orange-700" />
-        <StatCard icon={<FaHourglassHalf />} label="Pending Upcoming Requests" value={pendingUpcomingRequests} gradient="from-pink-500 to-pink-700" />
+        <StatCard icon={<FaHourglassHalf />} label="Pending Upcoming Meal Requests" value={pendingUpcomingRequests} gradient="from-pink-500 to-pink-700" />
       </div>
 
       {/* Today Stats + Total Reviews */}

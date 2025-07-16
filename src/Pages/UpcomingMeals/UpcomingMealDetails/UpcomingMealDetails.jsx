@@ -1,46 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useParams, useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
-import { FaThumbsUp, FaHeart } from 'react-icons/fa';
-import { Tooltip } from 'react-tooltip';
 import useSecureAxios from '../../../hooks/useSecureAxios';
 import useAuth from '../../../hooks/useAuth';
+import { FaThumbsUp, FaHeart, FaStar } from 'react-icons/fa';
 import Loading from '../../Shared/Loading/Loading';
+import { Tooltip } from 'react-tooltip';
+
+const Star = ({ filled, onClick }) => (
+  <FaStar
+    onClick={onClick}
+    className={`cursor-pointer h-6 w-6 ${filled ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`}
+  />
+);
 
 const UpcomingMealDetails = () => {
   const { id } = useParams();
   const secureAxios = useSecureAxios();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-
-  const [reviewText, setReviewText] = useState('');
-  const [likesCount, setLikesCount] = useState(0);
-  const [liked, setLiked] = useState(false);
   const navigate = useNavigate();
 
-  // 1) Fetch current user (to check badge)
-  const { data: userDetails = {}, isLoading: loadingUser } = useQuery({
+  const [reviewText, setReviewText] = useState('');
+  const [rating, setRating] = useState(0);
+  const [likesCount, setLikesCount] = useState(0);
+  const [liked, setLiked] = useState(false);
+
+  // Only enable current-user query if user.email exists to avoid unnecessary 404
+  const isUserEmailReady = Boolean(user?.email);
+
+  const {
+    data: userDetails = {},
+    isLoading: userLoading,
+    error: userError,
+  } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => secureAxios.get('/current-user').then(r => r.data),
-    enabled: !!user?.email,
+    queryFn: () => secureAxios.get('/current-user').then(res => res.data),
+    enabled: isUserEmailReady,
+    retry: 1,
   });
 
-  // 2) Fetch upcoming meal details
   const {
     data: meal = {},
-    isLoading: loadingMeal,
+    isLoading: mealLoading,
     refetch: refetchMeal,
   } = useQuery({
     queryKey: ['upcoming-meal-details', id],
-    queryFn: () => secureAxios.get(`/upcoming-meals/${id}`).then(r => r.data),
+    queryFn: () => secureAxios.get(`/upcoming-meals/${id}`).then(res => res.data),
     onSuccess: data => {
       setLikesCount(data.likes || 0);
-      setLiked((data.likedBy || []).includes(user?.email));
+      setLiked(data.likedBy?.includes(user?.email));
     },
   });
 
-  // 3) Keep local liked+count in sync if either `meal` or `user` changes
+  // Synchronize likesCount and liked when meal or user changes
   useEffect(() => {
     if (meal && user?.email) {
       setLikesCount(meal.likes || 0);
@@ -48,9 +62,9 @@ const UpcomingMealDetails = () => {
     }
   }, [meal, user?.email]);
 
-  // 4) Like/unlike mutation (premium-only)
+  // Mutation for like/unlike
   const likeMutation = useMutation({
-    mutationFn: () => secureAxios.patch(`/upcoming-meals/like/${id}`).then(r => r.data),
+    mutationFn: () => secureAxios.patch(`/upcoming-meals/like/${id}`).then(res => res.data),
     onSuccess: data => {
       setLiked(data.liked);
       setLikesCount(prev => prev + (data.liked ? 1 : -1));
@@ -60,28 +74,7 @@ const UpcomingMealDetails = () => {
     onError: () => Swal.fire('Error', 'Failed to toggle like.', 'error'),
   });
 
-  const handleLike = () => {
-    if (!user) {
-      return Swal.fire('Login Required', 'Please login to like meals.', 'info');
-    }
-    if (userDetails.badge === 'Bronze') {
-      return Swal.fire({
-        title: 'Upgrade Required',
-        text: 'Only premium users can like upcoming meals.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Close',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate('/membership');
-        }
-      });
-    }
-    likeMutation.mutate();
-  };
-
-  // 5) Request meal mutation
+  // Mutation for meal request
   const requestMutation = useMutation({
     mutationFn: () => secureAxios.post('/upcoming-meal-requests', {
       mealId: id,
@@ -89,57 +82,86 @@ const UpcomingMealDetails = () => {
       status: 'pending',
     }),
     onSuccess: () => Swal.fire('Success', 'Meal requested successfully!', 'success'),
-    onError: () => Swal.fire('Error', 'You already requested this meal!', 'error'),
+    onError: () => Swal.fire('Error', 'Already requested or failed.', 'error'),
   });
 
-  const handleRequest = () => {
-    if (!user) {
-      return Swal.fire('Login Required', 'Please login to request meals.', 'info');
-    }
-    if (userDetails.badge === 'Bronze') {
-      return Swal.fire({
-        title: 'Upgrade Required',
-        text: 'Only premium users can request for upcoming meals.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Upgrade Now',
-        cancelButtonText: 'Close',
-      }).then((result) => {
-        if (result.isConfirmed) {
-          navigate('/membership');
-        }
-      });
-    }
-    requestMutation.mutate();
-  };
-
-  // 6) Review mutation
+  // Mutation for posting review
   const reviewMutation = useMutation({
     mutationFn: () => secureAxios.post('/upcoming-meal-reviews', {
       mealId: id,
       email: user.email,
       name: userDetails.name || user.displayName,
       review: reviewText,
+      rating,
       image: userDetails.photo || user.photoURL,
     }),
     onSuccess: () => {
       setReviewText('');
+      setRating(0);
       Swal.fire('Posted', 'Review submitted!', 'success');
       queryClient.invalidateQueries(['upcoming-meal-details', id]);
     },
     onError: () => Swal.fire('Error', 'Failed to post review.', 'error'),
   });
 
+  // Handle Like Button Click
+  const handleLike = () => {
+    if (!user) {
+      return Swal.fire('Login Required', 'Please login to like meals.', 'info');
+    }
+    if (userDetails.badge === 'Bronze') {
+      return Swal.fire({
+        title: 'Upgrade Needed',
+        text: 'Only premium users can like upcoming meals.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Close',
+      }).then(result => {
+        if (result.isConfirmed) navigate('/membership');
+      });
+    }
+    likeMutation.mutate();
+  };
+
+  // Handle Request Button Click
+  const handleRequest = () => {
+    if (!user) {
+      return Swal.fire('Login Required', 'Please login.', 'info');
+    }
+    if (userDetails.badge === 'Bronze') {
+      return Swal.fire({
+        title: 'Upgrade Needed',
+        text: 'Only premium users can request upcoming meals.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Upgrade Now',
+        cancelButtonText: 'Close',
+      }).then(result => {
+        if (result.isConfirmed) navigate('/membership');
+      });
+    }
+    requestMutation.mutate();
+  };
+
+  // Handle Review Submit
   const handleReview = () => reviewMutation.mutate();
 
-  // 7) Show loader while fetching
-  if (loadingMeal || loadingUser) {
-    return <Loading />;
+  // Calculate average rating
+  const avgRating = meal.reviews?.length
+    ? (meal.reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / meal.reviews.length).toFixed(1)
+    : '0.0';
+
+  if (mealLoading || userLoading) return <Loading />;
+
+  // Optional: Show error console for user fetch errors
+  if (userError) {
+    console.error('Error fetching current user:', userError);
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6 mt-24">
-      {/* Image + Like Count */}
+      {/* Image + ❤️ */}
       <div className="relative rounded-xl overflow-hidden mb-6">
         <img
           src={meal.image || 'https://via.placeholder.com/600x400?text=No+Image'}
@@ -152,13 +174,15 @@ const UpcomingMealDetails = () => {
         </div>
       </div>
 
-      {/* Title & Info */}
+      {/* Details */}
       <h1 className="text-3xl font-bold mb-2">{meal.title}</h1>
       <p className="text-gray-600 mb-2">
         Distributor: {meal.distributorName} ({meal.distributorEmail})
       </p>
       <p className="mb-2">Ingredients: {meal.ingredients}</p>
-      <p className="mb-2">Rating: ⭐ {meal.rating || 0}</p>
+      <p className="mb-2">
+        Rating: <span className="text-yellow-500">⭐ {avgRating}</span> ({meal.reviews?.length || 0} reviews)
+      </p>
       <p className="mb-4 whitespace-pre-line">{meal.description || 'No description available.'}</p>
 
       {/* Action Buttons */}
@@ -168,15 +192,14 @@ const UpcomingMealDetails = () => {
             className={`btn btn-sm ${liked ? 'btn-primary' : 'btn-outline'}`}
             onClick={handleLike}
           >
-            <FaThumbsUp />
+            {liked ? <FaHeart /> : <FaThumbsUp />}
           </button>
         </div>
         <Tooltip id="likeTip" place="top" />
 
         <div
           data-tooltip-id="requestTip"
-          data-tooltip-content='Request Meal'
-
+          data-tooltip-content={userDetails.badge === 'Bronze' ? 'Upgrade to Premium' : 'Request Meal'}
         >
           <button className="btn btn-sm btn-success" onClick={handleRequest}>
             🍽️ Request Meal
@@ -197,9 +220,19 @@ const UpcomingMealDetails = () => {
               value={reviewText}
               onChange={e => setReviewText(e.target.value)}
             />
+            {/* Star Rating */}
+            <div className="mt-2 flex items-center gap-2 select-none">
+              <span className="text-gray-600">Your Rating:</span>
+              <div className="flex space-x-1">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star key={star} filled={star <= rating} onClick={() => setRating(star)} />
+                ))}
+              </div>
+            </div>
+
             <button
-              className="btn btn-sm btn-primary mt-2"
-              disabled={!reviewText.trim()}
+              className="btn btn-sm btn-primary mt-3"
+              disabled={!reviewText.trim() || rating === 0}
               onClick={handleReview}
             >
               Submit Review
@@ -208,6 +241,7 @@ const UpcomingMealDetails = () => {
         ) : (
           <p className="text-gray-500">Login to write a review.</p>
         )}
+
         <div className="space-y-4">
           {meal.reviews?.map((r, i) => (
             <div key={i} className="border p-4 rounded-md bg-base-100">
@@ -219,7 +253,8 @@ const UpcomingMealDetails = () => {
                 />
                 <p className="font-medium">{r.name}</p>
               </div>
-              <p className="ml-11 whitespace-pre-line">{r.review}</p>
+              <p className="ml-11 whitespace-pre-line mb-1">{r.review}</p>
+              <p className="ml-11 text-sm text-yellow-500">Rating: {'⭐'.repeat(r.rating || 0)}</p>
             </div>
           ))}
         </div>
