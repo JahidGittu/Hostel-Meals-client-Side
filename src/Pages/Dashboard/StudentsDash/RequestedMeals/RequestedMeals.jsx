@@ -14,7 +14,7 @@ const RequestedMeals = () => {
   // Fetch current user info
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
-    queryFn: () => secureAxios.get('/current/user').then(res => res.data),
+    queryFn: () => secureAxios.get('/current-user').then(res => res.data),
     enabled: !!user?.email,
   });
 

@@ -16,7 +16,7 @@ const AdminProfile = () => {
         if (user?.email) {
             const fetchData = async () => {
                 try {
-                    const userRes = await axiosSecure.get('/current/user');
+                    const userRes = await axiosSecure.get('/current-user');
                     const statsRes = await axiosSecure.get('/total-meals');
 
                     setUserData(userRes.data);

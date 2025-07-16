@@ -22,7 +22,7 @@ const UpcomingMealDetails = () => {
   // 1) Fetch current user (to check badge)
   const { data: userDetails = {}, isLoading: loadingUser } = useQuery({
     queryKey: ['current-user'],
-    queryFn: () => secureAxios.get('/current/user').then(r => r.data),
+    queryFn: () => secureAxios.get('/current-user').then(r => r.data),
     enabled: !!user?.email,
   });
 

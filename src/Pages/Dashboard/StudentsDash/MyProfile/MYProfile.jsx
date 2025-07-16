@@ -20,7 +20,7 @@ const MyProfile = () => {
 
   useEffect(() => {
     if (user?.email) {
-      axiosSecure.get('/current/user')
+      axiosSecure.get('/current-user')
         .then(res => {
           setUserData(res.data);
           setLoading(false);

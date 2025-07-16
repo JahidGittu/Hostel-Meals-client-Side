@@ -9,21 +9,20 @@ const secureAxios = axios.create({
 
 const useSecureAxios = () => {
   useEffect(() => {
+    const auth = getAuth();
+
     const interceptor = secureAxios.interceptors.request.use(
       async (config) => {
-        const auth = getAuth();
         const user = auth.currentUser;
 
         if (user) {
-          const token = await user.getIdToken(); // ✅ actual token
+          const token = await user.getIdToken();
           config.headers.Authorization = `Bearer ${token}`;
         }
 
         return config;
       },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (error) => Promise.reject(error)
     );
 
     return () => {

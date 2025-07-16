@@ -5,7 +5,7 @@ import Logo from '../Logo/Logo';
 import useAuth from '../../../hooks/useAuth';
 
 const Navbar = ({ dashboard = false }) => {
-    const { user, logoutUser } = useAuth();
+    const { user, logoutUser, loading } = useAuth();
     const [isScrolled, setIsScrolled] = useState(false);
 
     useEffect(() => {
@@ -59,7 +59,7 @@ const Navbar = ({ dashboard = false }) => {
                             <FaBell className="text-xl" />
                         </button>
 
-                        {user ? (
+                        {loading ? <span className="loading loading-dots loading-md"></span> : user ? (
                             <div className="dropdown dropdown-end">
                                 <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                                     <div className="w-10 rounded-full">
