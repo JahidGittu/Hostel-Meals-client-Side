@@ -61,7 +61,7 @@ const Home = () => {
       <Banner />
       <CategoryTabs />
       <MembershipPage currentUser={currentUser} />
-      <PopularMeals popularMeals={popularMeals} />
+      <PopularMeals meals={popularMeals} />
       <TestimonialsSection featuredReviews={featuredReviews} />
       {/* <FaqSection faqs={faqs} /> */}
     </div>

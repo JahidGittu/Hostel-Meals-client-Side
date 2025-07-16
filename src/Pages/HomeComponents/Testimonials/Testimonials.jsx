@@ -7,7 +7,7 @@ const TestimonialsSection = ({ featuredReviews = [] }) => {
   const { user } = useAuth();
 
   // ইউজারের রিভিউ আছে কিনা চেক করো
-  const hasUserReview = featuredReviews.some((review) => review.email === user?.email);
+  // const hasUserReview = featuredReviews.some((review) => review.email === user?.email);
 
   // ৩ টা করে ভাগ করো
   const chunked = [];
@@ -31,12 +31,12 @@ const TestimonialsSection = ({ featuredReviews = [] }) => {
         💬 ইউজারদের অভিজ্ঞতা
       </h2>
 
-      {/* ✅ Show a card if user has no review */}
+      {/* ✅ Show a card if user has no review
       {user?.email && !hasUserReview && (
         <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-xl mb-6 max-w-xl mx-auto">
           <p className="font-medium text-center">To see your name, please review first.</p>
         </div>
-      )}
+      )} */}
 
       <Slider {...settings}>
         {chunked.map((group, idx) => (
