@@ -3,7 +3,7 @@
 <p align="center">A complete MERN-based University Hostel Meal & Review Management System.<br>Built to manage daily meals, collect student reviews, and streamline admin operations.</p>
 
 <p align="center">
-  <a href="https://HostelMeals.web.app" target="_blank">🌐 Live Website</a> |
+  <a href="https://hostel-management-system-pro.web.app/" target="_blank">🌐 Live Website</a> |
   <a href="https://github.com/JahidGittu/Hostel-Meals-client-Side" target="_blank">💻 Client Repository</a> |
   <a href="https://github.com/JahidGittu/Hostel-Meals-Server-Side" target="_blank">🛠️ Server Repository</a>
 </p>
@@ -13,7 +13,7 @@
 ## 👨‍💼 Admin Credentials
 
 - **Email:** code@gittu.com  
-- **Password:** 123456
+- **Password:** Code@123
 
 Use these to test admin functionalities like meal creation, user management, etc.
 
