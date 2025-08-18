@@ -3,9 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import Banner from '../HomeComponents/Banner/Banner';
 import MembershipPage from '../MembershipPage/MembershipPage';
 import PopularMeals from '../HomeComponents/PopularMeals/PopularMeals';
-import TestimonialsSection from '../HomeComponents/Testimonials/Testimonials';
-import FaqSection from '../HomeComponents/FaqSection/FaqSection';
+// import FaqSection from '../HomeComponents/FaqSection/FaqSection';
 import CategoryTabs from '../HomeComponents/CategoryTabs/CategoryTabs';
+import Testimonials from '../HomeComponents/Testimonials/Testimonials';
 import useAxios from '../../hooks/useAxios';
 import useSecureAxios from '../../hooks/useSecureAxios';
 import Loading from '../Shared/Loading/Loading';
@@ -41,28 +41,28 @@ const Home = () => {
     },
   });
 
-  console.log("featured revies here", featuredReviews)
+  // console.log("featured revies here", featuredReviews)
 
   // Get FAQs
-  const { data: faqs = [], isLoading: loadingFaqs } = useQuery({
-    queryKey: ['faqs'],
-    queryFn: async () => {
-      const res = await axiosInstance.get('/faqs');
-      return res.data;
-    },
-  });
+  // const { data: faqs = [], isLoading: loadingFaqs } = useQuery({
+  //   queryKey: ['faqs'],
+  //   queryFn: async () => {
+  //     const res = await axiosInstance.get('/faqs');
+  //     return res.data;
+  //   },
+  // });
 
-  const isLoading = loadingUser || loadingMeals || loadingReviews || loadingFaqs;
+  const isLoading = loadingUser || loadingMeals || loadingReviews ;   // || loadingFaqs
 
   if (isLoading) return <Loading />;
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 bg-base-100 text-base-content">
       <Banner />
       <CategoryTabs />
       <MembershipPage currentUser={currentUser} />
       <PopularMeals meals={popularMeals} />
-      <TestimonialsSection featuredReviews={featuredReviews} />
+      <Testimonials featuredReviews={featuredReviews} />
       {/* <FaqSection faqs={faqs} /> */}
     </div>
   );

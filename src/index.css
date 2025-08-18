@@ -1,18 +1,97 @@
 @import url('https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
 
 @import "tailwindcss";
+@plugin "daisyui";
 
-@plugin "daisyui" {
-  themes: light --default, dark ;
-}
-
+/* Custom Light Theme */
 @plugin "daisyui/theme" {
-  name: "dark";
+  name: "mytheme";
   default: true;
-  --color-primary: blue;
-  --color-secondary: teal;
+  prefersDark: false;
+  color-scheme: light;
+
+  --color-base-100: #E9EEF0; 
+  --color-base-200: oklch(98% 0.03 240);
+  --color-base-300: oklch(95% 0.04 240);
+  --color-base-content: oklch(20% 0.05 240);
+
+  --color-primary: oklch(52% 0.3 240);
+  --color-primary-content: oklch(100% 0.01 240);
+
+  --color-secondary: oklch(60% 0.25 200);
+  --color-secondary-content: oklch(100% 0.01 200);
+
+  --color-accent: oklch(60% 0.25 160);
+  --color-accent-content: oklch(100% 0.01 160);
+
+  --color-neutral: oklch(50% 0.05 240);
+  --color-neutral-content: oklch(100% 0.01 240);
+
+  --color-info: oklch(70% 0.2 220);
+  --color-info-content: oklch(100% 0.01 220);
+
+  --color-success: oklch(50% 0.25 140);
+  --color-success-content: oklch(100% 0.01 140);
+
+  --color-warning: oklch(80% 0.25 80);
+  --color-warning-content: oklch(20% 0.05 80);
+
+  --color-error: oklch(65% 0.3 30);
+  --color-error-content: oklch(100% 0.01 30);
+
+  --radius-selector: 1rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+
+  --border: 1px;
+  --depth: 1;
+  --noise: 0;
+
+  --card-bg: #E9EEF0; /* Card background */
 }
 
+/* Custom Dark Theme */
+@plugin "daisyui/theme" {
+  name: "mytheme-dark";
+  color-scheme: dark;
+
+  --color-base-100: #1E293B; /* Dark background */
+  --color-base-200: #0F172A;
+  --color-base-300: #020617;
+  --color-base-content: #F8FAFC;
+
+  --color-primary: oklch(62% 0.3 240);
+  --color-primary-content: #FFFFFF;
+
+  --color-secondary: oklch(70% 0.25 200);
+  --color-secondary-content: #FFFFFF;
+
+  --color-accent: oklch(70% 0.25 160);
+  --color-accent-content: #FFFFFF;
+
+  --color-neutral: #334155;
+  --color-neutral-content: #FFFFFF;
+
+  --color-info: oklch(70% 0.2 220);
+  --color-success: oklch(50% 0.25 140);
+  --color-warning: oklch(80% 0.25 80);
+  --color-error: oklch(65% 0.3 30);
+
+  --card-bg: #1E293B; /* Card background */
+}
+
+/* Apply card background globally */
+.card {
+  background-color: var(--card-bg) !important;
+}
+
+/* Apply body background globally based on theme */
+body {
+  background-color: var(--color-base-100);
+}
 
 .urbanist-font {
   font-family: "Urbanist", sans-serif;

@@ -14,39 +14,29 @@ const CategoryTabs = () => {
 
     useEffect(() => {
         setLoading(true);
-
         const url = `/meals-by-category?category=${encodeURIComponent(selectedCategory)}&type=${activeTab === 'Meal' ? 'meal' : 'upcoming'}&limit=${limit}`;
 
         axiosInstance.get(url)
-            .then(res => {
-                setMealsData(res.data);
-                console.log(`Data loaded for Tab: ${activeTab}, Category: ${selectedCategory}`, res.data);
-            })
-            .catch(err => {
-                console.error(err);
-                setMealsData({ meals: [], upcomingMeals: [] });
-            })
+            .then(res => setMealsData(res.data))
+            .catch(() => setMealsData({ meals: [], upcomingMeals: [] }))
             .finally(() => setLoading(false));
     }, [selectedCategory, limit, activeTab, axiosInstance]);
 
     const mealsToRender = activeTab === 'Meal' ? mealsData.meals : mealsData.upcomingMeals;
 
     return (
-        <div className="p-4">
+        <div className="p-4 urbanist-font">
             {/* Category Tabs */}
             <div className="flex flex-wrap gap-2 justify-center mb-6">
                 {categories.map(cat => (
                     <button
                         key={cat}
-                        onClick={() => {
-                            setSelectedCategory(cat);
-                            setLimit(8);
-                            // activeTab ধরে রাখো
-                        }}
-                        className={`px-4 py-2 rounded-full font-semibold transition ${selectedCategory === cat
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-blue-400 hover:text-white'
-                            }`}
+                        onClick={() => { setSelectedCategory(cat); setLimit(8); }}
+                        className={`px-4 py-2 rounded-full font-semibold transition ${
+                            selectedCategory === cat
+                                ? 'bg-primary text-primary-content'
+                                : 'bg-base-200 text-base-content hover:bg-primary hover:text-primary-content'
+                        }`}
                     >
                         {cat}
                     </button>
@@ -56,29 +46,31 @@ const CategoryTabs = () => {
             {/* Tabs and Limit Selector */}
             <div className="flex justify-between items-center mb-4">
                 {/* Tabs */}
-                <div>
+                <div className="flex gap-2">
                     <button
                         onClick={() => setActiveTab('Meal')}
-                        className={`rounded-full font-semibold transition btn btn-sm ${activeTab === 'Meal'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-blue-400 hover:text-white'
-                            }`}
+                        className={`rounded-full font-semibold transition btn btn-sm ${
+                            activeTab === 'Meal'
+                                ? 'bg-primary text-primary-content'
+                                : 'bg-base-200 text-base-content hover:bg-primary hover:text-primary-content'
+                        }`}
                     >
                         Meal
                     </button>
                     <button
                         onClick={() => setActiveTab('Upcoming')}
-                        className={`rounded-full font-semibold transition btn btn-sm ${activeTab === 'Upcoming'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-700 hover:bg-blue-400 hover:text-white'
-                            }`}
+                        className={`rounded-full font-semibold transition btn btn-sm ${
+                            activeTab === 'Upcoming'
+                                ? 'bg-primary text-primary-content'
+                                : 'bg-base-200 text-base-content hover:bg-primary hover:text-primary-content'
+                        }`}
                     >
                         Upcoming
                     </button>
                 </div>
 
-                {/* Limit Selector - Only show when selectedCategory is 'All' AND activeTab is 'Meal' */}
-                {selectedCategory === 'All' && (
+                {/* Limit Selector */}
+                {selectedCategory === 'All' && activeTab === 'Meal' && (
                     <select
                         value={limit}
                         onChange={e => setLimit(Number(e.target.value))}
@@ -91,15 +83,14 @@ const CategoryTabs = () => {
                         <option value={0}>Show All</option>
                     </select>
                 )}
-
             </div>
 
             {/* Meals Grid */}
             <div className="min-h-[400px]">
                 {loading ? (
-                    <p className="text-center text-gray-500">Loading...</p>
+                    <p className="text-center text-base-content">Loading...</p>
                 ) : mealsToRender.length === 0 ? (
-                    <p className="text-center text-gray-500">No data found for this selection.</p>
+                    <p className="text-center text-base-content">No data found for this selection.</p>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {mealsToRender.map(meal => (
@@ -124,16 +115,16 @@ const MealCard = ({ meal, label }) => (
                 alt={meal.title}
                 className="w-full h-44 object-cover"
             />
-            <span className="absolute top-2 right-2 bg-white text-gray-800 px-2 py-1 text-xs rounded shadow">
+            <span className="absolute top-2 right-2 bg-base-200 text-base-content px-2 py-1 text-xs rounded shadow">
                 👍 {meal.likes || 0}
             </span>
         </div>
         <div className="p-4 flex flex-col flex-1 justify-between">
             <div>
-                <h3 className="font-semibold text-lg mb-1 text-gray-200">{meal.title}</h3>
-                <p className="text-sm text-gray-500 mb-2">{meal.category}</p>
+                <h3 className="font-semibold text-lg mb-1 text-base-content">{meal.title}</h3>
+                <p className="text-sm text-base-content/70 mb-2">{meal.category}</p>
             </div>
-            <div className="flex justify-between items-center mb-2 text-sm text-gray-500">
+            <div className="flex justify-between items-center mb-2 text-sm text-base-content/70">
                 <span>📝 {meal.reviews_count || 0} reviews</span>
                 <span className="text-primary font-bold">৳{meal.price}</span>
             </div>
@@ -144,7 +135,7 @@ const MealCard = ({ meal, label }) => (
                 >
                     Details
                 </Link>
-                <span className="text-xs italic text-gray-400 flex-1 text-right">{label}</span>
+                <span className="text-xs italic text-base-content/50 flex-1 text-right">{label}</span>
             </div>
         </div>
     </div>
