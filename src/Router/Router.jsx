@@ -29,13 +29,14 @@ import MyReviews from '../Pages/Dashboard/StudentsDash/MyReviews/MyReviews';
 import PaymentHistory from '../Pages/Dashboard/StudentsDash/PaymentHistory/PaymentHistory';
 import StudentDash from '../Pages/Dashboard/StudentsDash/StudentDash';
 import DashboardHome from '../Pages/Dashboard/DashboardHome/DashboardHome';
+import ErrorPage from '../Pages/ErrorPage/ErrorPage';
 
 
 const Router = createBrowserRouter([
     {
         path: '/',
         element: <RootLayout></RootLayout>,
-        errorElement: <p>Error</p>,
+        errorElement: <ErrorPage/> ,
         children: [
             {
                 index: true,

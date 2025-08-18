@@ -9,6 +9,7 @@ import Testimonials from '../HomeComponents/Testimonials/Testimonials';
 import useAxios from '../../hooks/useAxios';
 import useSecureAxios from '../../hooks/useSecureAxios';
 import Loading from '../Shared/Loading/Loading';
+import WhyChooseUs from '../HomeComponents/WhyChosseUs/WhyChosseUs';
 
 const Home = () => {
   const secureAxios = useSecureAxios();
@@ -59,6 +60,7 @@ const Home = () => {
   return (
     <div className="space-y-12 bg-base-100 text-base-content">
       <Banner />
+      <WhyChooseUs/>
       <CategoryTabs />
       <MembershipPage currentUser={currentUser} />
       <PopularMeals meals={popularMeals} />

@@ -16,7 +16,7 @@ const useImageUploader = () => {
 
       const res = await axios.post(`https://api.imgbb.com/1/upload?key=${apiKey}`, formData);
 
-      console.log(res.data)
+      // console.log(res.data)
 
       const data = res.data;
 

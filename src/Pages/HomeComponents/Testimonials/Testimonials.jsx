@@ -58,9 +58,9 @@ const Testimonials = ({ featuredReviews = [], currentUserEmail }) => {
           {chunked.map((group, idx) => (
             <div key={idx}>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 px-4">
-                {group.map((item) => (
+                {group.map((item,idx) => (
                   <div
-                    key={item._id || item.name + idx}
+                    key={idx}
                     className="relative bg-white rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 flex flex-col items-center"
                   >
                     {/* Rating */}

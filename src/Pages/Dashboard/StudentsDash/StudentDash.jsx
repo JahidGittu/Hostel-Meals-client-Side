@@ -33,7 +33,7 @@ const StudentDash = () => {
     } = data || {};
 
 
-    console.log(recentRequestedMeals)
+    // console.log(recentRequestedMeals)
 
     return (
         <div className="space-y-8">
