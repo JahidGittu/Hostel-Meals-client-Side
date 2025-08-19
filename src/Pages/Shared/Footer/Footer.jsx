@@ -35,7 +35,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-base-200 text-base-content border-t border-gray-400">
+    <footer className="bg-base-300 text-base-content">
       <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Section 1: Site Info */}
         <div>
@@ -81,7 +81,7 @@ const Footer = () => {
           />
           <button
             onClick={handleSubscribe}
-            className="btn btn-success text-white"
+            className="btn btn-primary text-white"
             disabled={loading}
           >
             {loading ? <FaSpinner className="animate-spin" /> : <CiLocationArrow1 size={20} />}

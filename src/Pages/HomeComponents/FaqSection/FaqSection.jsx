@@ -1,6 +1,6 @@
 const FaqSection = ({ faqs }) => {
   return (
-    <section className="my-16 px-4 max-w-4xl mx-auto">
+    <section className="my-16 px-4 max-w-5xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">❓ Frequently Asked Questions</h2>
       <div className="space-y-4">
         {faqs.map((faq, idx) => (

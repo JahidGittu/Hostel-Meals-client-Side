@@ -3,7 +3,7 @@ import { Clock, Star, MapPin } from "lucide-react";
 const WhyChooseUs = () => {
   return (
     <section className="py-16 bg-muted/30">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="px-4 max-w-7xl mx-auto">
         
         {/* Section Heading */}
         <div className="text-center mb-12">
@@ -19,8 +19,8 @@ const WhyChooseUs = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Item 1 */}
-          <div className="text-center p-6 bg-card rounded-2xl shadow hover:shadow-lg transition-all">
-            <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <div className="text-center p-6 bg-base-200 rounded-2xl shadow hover:shadow-lg transition-all">
+            <div className="p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <Clock className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Quick Service</h3>
@@ -30,8 +30,8 @@ const WhyChooseUs = () => {
           </div>
           
           {/* Item 2 */}
-          <div className="text-center p-6 bg-card rounded-2xl shadow hover:shadow-lg transition-all">
-            <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <div className="text-center p-6 bg-base-200 rounded-2xl shadow hover:shadow-lg transition-all">
+            <div className="p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <Star className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Quality Food</h3>
@@ -41,8 +41,8 @@ const WhyChooseUs = () => {
           </div>
           
           {/* Item 3 */}
-          <div className="text-center p-6 bg-card rounded-2xl shadow hover:shadow-lg transition-all">
-            <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <div className="text-center p-6 bg-base-200 rounded-2xl shadow hover:shadow-lg transition-all">
+            <div className="p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <MapPin className="h-8 w-8 text-primary" />
             </div>
             <h3 className="text-xl font-semibold mb-2">Convenient Location</h3>

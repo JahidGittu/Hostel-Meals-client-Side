@@ -41,7 +41,7 @@ const Testimonials = ({ featuredReviews = [], currentUserEmail }) => {
 
   return (
     <section className="py-20 px-4">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             💬 ইউজারদের অভিজ্ঞতা
@@ -73,7 +73,7 @@ const Testimonials = ({ featuredReviews = [], currentUserEmail }) => {
 
                     {/* Profile Image */}
                     {item.image && (
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-purple-500 mb-4">
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-4 mb-4">
                         <img
                           src={item.image}
                           alt={item.name}
@@ -83,7 +83,7 @@ const Testimonials = ({ featuredReviews = [], currentUserEmail }) => {
                     )}
 
                     {/* User Info */}
-                    <h3 className="font-semibold text-lg text-purple-600">{item.name}</h3>
+                    <h3 className="font-semibold text-lg ">{item.name}</h3>
                     {item.location && (
                       <p className="text-xs text-gray-400">{item.location}</p>
                     )}

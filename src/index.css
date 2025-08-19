@@ -10,34 +10,27 @@
   prefersDark: false;
   color-scheme: light;
 
-  --color-base-100: #E9EEF0; 
-  --color-base-200: oklch(98% 0.03 240);
-  --color-base-300: oklch(95% 0.04 240);
-  --color-base-content: oklch(20% 0.05 240);
+  --color-base-100: #F0F2F5; /* Light background (হালকা গ্রে) */
+  --color-base-200: #FFFFFF; /* Pure White */
+  --color-base-300: #EAF7FB;
+  --color-base-content: #1A1A1A;
 
-  --color-primary: oklch(52% 0.3 240);
-  --color-primary-content: oklch(100% 0.01 240);
+  --color-primary: #FE8B0C; /* কমলা */
+  --color-primary-content: #FFFFFF;
 
-  --color-secondary: oklch(60% 0.25 200);
-  --color-secondary-content: oklch(100% 0.01 200);
+  --color-secondary: #66B2FF; /* হালকা নীল */
+  --color-secondary-content: #1A1A1A;
 
-  --color-accent: oklch(60% 0.25 160);
-  --color-accent-content: oklch(100% 0.01 160);
+  --color-accent: #66CC99;
+  --color-accent-content: #FFFFFF;
 
-  --color-neutral: oklch(50% 0.05 240);
-  --color-neutral-content: oklch(100% 0.01 240);
+  --color-neutral: #7A7A7A;
+  --color-neutral-content: #FFFFFF;
 
-  --color-info: oklch(70% 0.2 220);
-  --color-info-content: oklch(100% 0.01 220);
-
-  --color-success: oklch(50% 0.25 140);
-  --color-success-content: oklch(100% 0.01 140);
-
-  --color-warning: oklch(80% 0.25 80);
-  --color-warning-content: oklch(20% 0.05 80);
-
-  --color-error: oklch(65% 0.3 30);
-  --color-error-content: oklch(100% 0.01 30);
+  --color-info: #2094F3;
+  --color-success: #22C55E;
+  --color-warning: #FACC15;
+  --color-error: #EF4444;
 
   --radius-selector: 1rem;
   --radius-field: 0.25rem;
@@ -50,7 +43,7 @@
   --depth: 1;
   --noise: 0;
 
-  --card-bg: #E9EEF0; /* Card background */
+  --card-bg: #FFFFFF; /* Card Background = সাদা */
 }
 
 /* Custom Dark Theme */
@@ -58,29 +51,29 @@
   name: "mytheme-dark";
   color-scheme: dark;
 
-  --color-base-100: #1E293B; /* Dark background */
-  --color-base-200: #0F172A;
-  --color-base-300: #020617;
+  --color-base-100: #141A21; /* Dark background */
+  --color-base-200: #1C252E; /* একটু হালকা (secondary bg) */
+  --color-base-300: #2C3138;
   --color-base-content: #F8FAFC;
 
-  --color-primary: oklch(62% 0.3 240);
+  --color-primary: #FE8B0C; /* কমলা */
   --color-primary-content: #FFFFFF;
 
-  --color-secondary: oklch(70% 0.25 200);
+  --color-secondary: #66B2FF; /* হালকা নীল */
   --color-secondary-content: #FFFFFF;
 
-  --color-accent: oklch(70% 0.25 160);
+  --color-accent: #66CC99;
   --color-accent-content: #FFFFFF;
 
   --color-neutral: #334155;
   --color-neutral-content: #FFFFFF;
 
-  --color-info: oklch(70% 0.2 220);
-  --color-success: oklch(50% 0.25 140);
-  --color-warning: oklch(80% 0.25 80);
-  --color-error: oklch(65% 0.3 30);
+  --color-info: #2094F3;
+  --color-success: #22C55E;
+  --color-warning: #FACC15;
+  --color-error: #EF4444;
 
-  --card-bg: #1E293B; /* Card background */
+  --card-bg: #1C252E; /* Card background (ডার্ক থিমে গাঢ় কিন্তু ব্যাকগ্রাউন্ড থেকে আলাদা) */
 }
 
 /* Apply card background globally */

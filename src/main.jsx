@@ -19,7 +19,7 @@ const queryClient = new QueryClient();
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <HelmetProvider>
-      <div className="urbanist-font max-w-7xl mx-auto">
+      <div className="urbanist-font">
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <RouterProvider router={Router} />

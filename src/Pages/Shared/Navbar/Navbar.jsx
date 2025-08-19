@@ -22,10 +22,10 @@ const Navbar = ({ dashboard = false }) => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "dark") {
       setDarkMode(true);
-      document.documentElement.setAttribute("data-theme", "dark");
+      document.documentElement.setAttribute("data-theme", "mytheme-dark");
     } else {
       setDarkMode(false);
-      document.documentElement.setAttribute("data-theme", "light");
+      document.documentElement.setAttribute("data-theme", "mytheme");
     }
   }, []);
 
@@ -56,7 +56,7 @@ const Navbar = ({ dashboard = false }) => {
     setDarkMode(newTheme);
     document.documentElement.setAttribute(
       "data-theme",
-      newTheme ? "dark" : "light"
+      newTheme ? "mytheme-dark" : "mytheme"
     );
     localStorage.setItem("theme", newTheme ? "dark" : "light"); // save to localStorage
   };
@@ -76,16 +76,16 @@ const Navbar = ({ dashboard = false }) => {
   );
 
   const navbarWrapperClass = dashboard
-    ? "sticky top-0 left-0 w-full z-[999] bg-base-100 shadow"
+    ? "sticky top-0 left-0 w-full z-[999] bg-base-300 shadow"
     : "fixed top-0 left-0 w-full z-[999]";
 
   return (
     <div className={`${navbarWrapperClass}`}>
-      <div className="max-w-7xl mx-auto">
+      <div>
         <div
           className={`navbar px-4 transition-all duration-300 ${
             isScrolled
-              ? "bg-base-100 shadow backdrop-blur-md text-base-content"
+              ? "bg-base-300 shadow backdrop-blur-md text-base-content rounded-b-3xl"
               : "bg-transparent text-white"
           }`}
         >
@@ -96,14 +96,12 @@ const Navbar = ({ dashboard = false }) => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost btn-circle"
-              >
+                className="btn btn-ghost btn-circle">
                 <FaBars className="text-xl" />
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
-              >
+                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-32">
                 {navItems}
               </ul>
             </div>
@@ -137,7 +135,7 @@ const Navbar = ({ dashboard = false }) => {
                   </div>
                   <ul
                     tabIndex={0}
-                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-52"
                   >
                     <li>
                       <p className="font-semibold text-center">
@@ -192,7 +190,7 @@ const Navbar = ({ dashboard = false }) => {
                   </div>
                   <ul
                     tabIndex={0}
-                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-shadow-base-content rounded-box w-52"
                   >
                     <li>
                       <p className="font-semibold text-center">
@@ -250,7 +248,7 @@ const Navbar = ({ dashboard = false }) => {
                   </div>
                   <ul
                     tabIndex={0}
-                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52"
+                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-52"
                   >
                     <li>
                       <p className="font-semibold text-center">
