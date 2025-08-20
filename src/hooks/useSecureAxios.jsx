@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { getAuth } from 'firebase/auth';
 
 const secureAxios = axios.create({
-  baseURL: 'https://hostel-management-system-server-nu.vercel.app',
+  baseURL: 'https://hostel-meals-server-side.vercel.app',
   withCredentials: true,
 });
 

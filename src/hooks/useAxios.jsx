@@ -4,7 +4,7 @@ import axios from "axios";
 const useAxios = () => {
   const axiosInstance = useMemo(() => {
     return axios.create({
-      baseURL: `https://hostel-management-system-server-nu.vercel.app`,
+      baseURL: `https://hostel-meals-server-side.vercel.app`,
     });
   }, []);
 
