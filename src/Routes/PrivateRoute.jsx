@@ -11,16 +11,8 @@ const PrivateRoute = ({ children }) => {
     return <Loading />;
   }
 
-  if (!user) {
-    return (
-      <Navigate
-        to="/login"
-        state={{ from: location }} // ✅ আগের পেজ স্টোর করো এখানে
-        replace
-      />
-    );
-  }
-
+ // PrivateRoute
+if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 };
 

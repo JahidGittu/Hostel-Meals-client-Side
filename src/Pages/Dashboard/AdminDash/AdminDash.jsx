@@ -1,3 +1,4 @@
+// src/Pages/Dashboard/AdminDash/AdminDash.jsx
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -14,6 +15,22 @@ import moment from 'moment';
 import useAuth from '../../../hooks/useAuth';
 import useSecureAxios from '../../../hooks/useSecureAxios';
 
+// Recharts
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts';
+
+const COLORS = ['#6366F1', '#22C55E', '#F59E0B', '#EF4444', '#06B6D4'];
+
 const AdminDash = () => {
   const { user } = useAuth();
   const secureAxios = useSecureAxios();
@@ -27,7 +44,19 @@ const AdminDash = () => {
     enabled: !!user?.email,
   });
 
-  if (isLoading) return <p className="text-center text-xl py-20">Loading Admin Dashboard...</p>;
+  if (isLoading) {
+    return (
+      <div className="min-h-[60vh] grid place-items-center">
+        <div className="animate-pulse w-full space-y-6">
+          <div className="h-24 bg-base-200 rounded-xl" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-base-200 rounded-xl" />)}
+          </div>
+          <div className="h-72 bg-base-200 rounded-xl" />
+        </div>
+      </div>
+    );
+  }
 
   const {
     totalMeals = 0,
@@ -43,61 +72,131 @@ const AdminDash = () => {
     totalReviews = 0,
     last3PendingMealRequests = [],
     last3PendingUpcomingRequests = [],
-    latest2Users = []
+    latest2Users = [],
   } = stats || {};
 
+  // ---------- Chart Data ----------
+  const usersByRoleData = (userRoles || []).map((r) => ({
+    name: (r?._id || 'user').toUpperCase(),
+    value: r?.count || 0,
+  }));
+
+  const todayOverviewData = [
+    { name: 'New Users', value: todayUserCount || 0 },
+    { name: 'Meal Req', value: todayMealRequests || 0 },
+    { name: 'Upcoming Req', value: todayUpcomingMealRequests || 0 },
+  ];
+
+  const mealsOverviewData = [
+    { name: 'Posted', value: totalMeals || 0 },
+    { name: 'Upcoming', value: upcomingMealsCount || 0 },
+  ];
+
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={<FaUtensils />} label="Your Posted Meals" value={totalMeals} gradient="from-purple-500 to-purple-700" />
-        <StatCard icon={<FaUsers />} label="Total Users" value={totalUsers} gradient="from-blue-500 to-blue-700" />
-        <StatCard icon={<FaHourglassHalf />} label="Pending Meal Requests" value={pendingRequests} gradient="from-orange-500 to-orange-700" />
-        <StatCard icon={<FaHourglassHalf />} label="Pending Upcoming Meal Requests" value={pendingUpcomingRequests} gradient="from-pink-500 to-pink-700" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard icon={<FaUtensils />} label="Your Posted Meals" value={totalMeals} />
+        <StatCard icon={<FaUsers />} label="Total Users" value={totalUsers} />
+        <StatCard icon={<FaHourglassHalf />} label="Pending Meal Requests" value={pendingRequests} />
+        <StatCard icon={<FaHourglassHalf />} label="Pending Upcoming Requests" value={pendingUpcomingRequests} />
       </div>
 
-      {/* Today Stats + Total Reviews */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <StatCard icon={<FaUsers />} label="Today's New Users" value={todayUserCount} gradient="from-indigo-500 to-indigo-700" />
-        <StatCard icon={<FaUtensils />} label="Today's Meal Requests" value={todayMealRequests} gradient="from-teal-500 to-teal-700" />
-        <StatCard icon={<FaUtensils />} label="Today's Upcoming Requests" value={todayUpcomingMealRequests} gradient="from-yellow-500 to-yellow-700" />
-      </div>
-
-      {/* Extra Stats */}
-      <div className="px-36 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StatCard icon={<FaCalendarAlt />} label="Your Upcoming Meals" value={upcomingMealsCount} gradient="from-green-500 to-green-700" />
-        <StatCard icon={<FaComments />} label="Total Reviews" value={totalReviews} gradient="from-rose-500 to-rose-700" />
-      </div>
-
-      {/* User Roles + Top Distributor */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow">
-          <h2 className="text-lg font-semibold mb-3">🧑‍💼 Users by Role</h2>
-          <ul className="space-y-2">
-            {(userRoles || []).map((role, i) => (
-              <li key={i} className="flex justify-between text-sm border-b pb-1 border-gray-700">
-                <span className="capitalize">{role._id || 'User'}</span>
-                <span>{role.count}</span>
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Users by Role (Pie) */}
+        <div className="bg-base-100 rounded-xl shadow p-5">
+          <h3 className="font-semibold mb-3">🧑‍💼 Users by Role</h3>
+          {usersByRoleData.length ? (
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={usersByRoleData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={55}
+                    outerRadius={85}
+                    paddingAngle={3}
+                  >
+                    {usersByRoleData.map((_, idx) => (
+                      <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <EmptyChart />
+          )}
+          <ul className="mt-4 text-sm grid grid-cols-2 gap-2">
+            {usersByRoleData.map((r, i) => (
+              <li key={i} className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-sm" style={{ background: COLORS[i % COLORS.length] }} />
+                <span className="opacity-80">{r.name}</span>
+                <span className="ml-auto font-semibold">{r.value}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="p-6 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow">
-          <h2 className="text-lg font-semibold mb-3">🥇 Top Meal Distributor</h2>
-          {mostMealsAddedBy ? (
-            <p className="text-sm">
-              Email: <span className="font-medium text-yellow-300">{mostMealsAddedBy._id}</span><br />
-              Total Meals: <span className="font-bold">{mostMealsAddedBy.count}</span>
-            </p>
-          ) : (
-            <p className="text-sm text-gray-400">No data found.</p>
-          )}
+        {/* Today Overview (Bar) */}
+        <div className="bg-base-100 rounded-xl shadow p-5">
+          <h3 className="font-semibold mb-3">📈 Today Overview</h3>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={todayOverviewData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Meals Overview (Bar) */}
+        <div className="bg-base-100 rounded-xl shadow p-5">
+          <h3 className="font-semibold mb-3">🍽️ Meals Overview</h3>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={mealsOverviewData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
+      {/* Extra Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <InfoCard title="🥇 Top Meal Distributor">
+          {mostMealsAddedBy ? (
+            <p className="text-sm">
+              Email:{' '}
+              <span className="font-medium">{mostMealsAddedBy._id}</span>
+              <br />
+              Total Meals:{' '}
+              <span className="font-bold">{mostMealsAddedBy.count}</span>
+            </p>
+          ) : (
+            <p className="text-sm opacity-70">No data found.</p>
+          )}
+        </InfoCard>
+
+        <InfoCard title="💬 Total Reviews">
+          <p className="text-3xl font-bold">{totalReviews}</p>
+        </InfoCard>
+      </div>
+
       {/* Quick Actions */}
-      <div>
+      <div className="bg-base-100 rounded-xl shadow p-5">
         <h2 className="text-lg font-semibold mb-3">🚀 Quick Actions</h2>
         <div className="flex flex-wrap gap-3">
           <ActionButton to="/dashboard/add-meal" icon={<FaPlus />} label="Add Meal" />
@@ -106,15 +205,14 @@ const AdminDash = () => {
         </div>
       </div>
 
-      {/* Recent Pending Requests and Users */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Meal Requests */}
+      {/* Recent Pending Requests + Latest Users */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <RecentRequestsCard
+          className="lg:col-span-2"
           title="🛠️ Recent Meal Requests"
           requests={last3PendingMealRequests}
           fallbackText="No recent meal requests."
         />
-        {/* Recent Upcoming Requests */}
         <RecentRequestsCard
           title="🛠️ Recent Upcoming Meal Requests"
           requests={last3PendingUpcomingRequests}
@@ -122,19 +220,22 @@ const AdminDash = () => {
         />
       </div>
 
-      {/* Latest Users */}
-      <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-6 rounded-xl shadow text-white">
+      <div className="bg-base-100 p-5 rounded-xl shadow">
         <h3 className="text-md font-semibold mb-4">👥 Latest Users</h3>
         {latest2Users?.length === 0 ? (
-          <p className="text-sm text-gray-400">No new users.</p>
+          <p className="text-sm opacity-70">No new users.</p>
         ) : (
           <ul className="space-y-3">
             {latest2Users.map((u, i) => (
               <li key={i} className="flex items-center gap-3">
-                <img src={u.photo} alt="User" className="w-10 h-10 rounded-full border border-gray-600" />
+                <img
+                  src={u.photo || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u?.name || u?.email || 'User')}`}
+                  alt="User"
+                  className="w-10 h-10 rounded-full border object-cover"
+                />
                 <div>
                   <p className="text-sm font-medium">{u.name}</p>
-                  <p className="text-xs text-gray-400">{u.email}</p>
+                  <p className="text-xs opacity-70">{u.email}</p>
                 </div>
               </li>
             ))}
@@ -145,44 +246,56 @@ const AdminDash = () => {
   );
 };
 
-// Stat Card Component
-const StatCard = ({ icon, label, value, gradient }) => (
-  <div className={`p-6 rounded-xl shadow text-white bg-gradient-to-r ${gradient}`}>
-    <div className="flex items-center gap-4">
-      <div className="text-3xl">{icon}</div>
-      <div>
-        <p className="text-sm">{label}</p>
-        <h3 className="text-xl font-bold">{value}</h3>
-      </div>
+// ------- UI bits -------
+const StatCard = ({ icon, label, value }) => (
+  <div className="bg-base-100 rounded-xl shadow p-5 h-28 flex items-center justify-between">
+    <div className="text-3xl opacity-80">{icon}</div>
+    <div className="text-right">
+      <p className="text-sm opacity-70">{label}</p>
+      <p className="text-2xl font-bold leading-tight">{value}</p>
     </div>
   </div>
 );
 
-// Action Button Component
+const InfoCard = ({ title, children }) => (
+  <div className="bg-base-100 rounded-xl shadow p-5">
+    <h3 className="font-semibold mb-2">{title}</h3>
+    {children}
+  </div>
+);
+
 const ActionButton = ({ to, icon, label }) => (
-  <Link to={to} className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2">
+  <Link
+    to={to}
+    className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+  >
     {icon} {label}
   </Link>
 );
 
-// Recent Requests Card Component
-const RecentRequestsCard = ({ title, requests = [], fallbackText }) => (
-  <div className="bg-gradient-to-br from-slate-800 to-gray-900 p-6 rounded-xl shadow text-white">
+const RecentRequestsCard = ({ title, requests = [], fallbackText, className = '' }) => (
+  <div className={`bg-base-100 p-5 rounded-xl shadow ${className}`}>
     <h3 className="text-md font-semibold mb-4">{title}</h3>
-    {requests.length === 0 ? (
-      <p className="text-sm text-gray-400">{fallbackText}</p>
-    ) : (
+    {requests?.length ? (
       <ul className="space-y-4">
         {requests.map((req, idx) => (
-          <li key={idx} className="border-b border-gray-700 pb-2">
+          <li key={idx} className="border-b pb-2">
             <p className="text-sm font-medium">🍽️ Meal ID: {req.mealId}</p>
-            <p className="text-xs">User: {req.userEmail}</p>
-            <p className="text-xs">Status: {req.status}</p>
-            <p className="text-xs text-gray-400">{moment(req.requestedAt).fromNow()}</p>
+            <p className="text-xs opacity-80">User: {req.userEmail}</p>
+            <p className="text-xs">Status: <span className="font-medium">{req.status}</span></p>
+            <p className="text-xs opacity-60">{moment(req.requestedAt).fromNow()}</p>
           </li>
         ))}
       </ul>
+    ) : (
+      <p className="text-sm opacity-70">{fallbackText}</p>
     )}
+  </div>
+);
+
+const EmptyChart = () => (
+  <div className="h-72 grid place-items-center">
+    <p className="text-sm opacity-70">No data to visualize.</p>
   </div>
 );
 

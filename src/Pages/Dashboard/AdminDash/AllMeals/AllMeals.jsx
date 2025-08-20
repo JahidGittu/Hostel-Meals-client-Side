@@ -4,7 +4,8 @@ import useSecureAxios from "../../../../hooks/useSecureAxios";
 import usePagination from "../../../../hooks/usePagination";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import { ImSpinner2 } from "react-icons/im";
 
 const AllMeals = () => {
   const axiosSecure = useSecureAxios();
@@ -70,10 +71,12 @@ const AllMeals = () => {
     });
 
     try {
-      const res = await axiosSecure.delete(`/meals/${id}`);
-      if (res.data.deletedCount > 0) {
-        Swal.fire("Deleted!", "Meal has been deleted.", "success");
-        refetch();
+      if (confirm.isConfirmed) {
+        const res = await axiosSecure.delete(`/meals/${id}`);
+        if (res.data.deletedCount > 0) {
+          Swal.fire("Deleted!", "Meal has been deleted.", "success");
+          refetch();
+        }
       }
     } catch (err) {
       Swal.fire("Error", "Failed to delete meal", "error");
@@ -81,28 +84,30 @@ const AllMeals = () => {
   };
 
   return (
-    <div className="max-w-full w-full">
-      <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
+    <div className="max-w-full w-full p-4 sm:p-6 bg-base-100 rounded-xl shadow">
+      <h2 className="text-2xl font-bold text-center mb-6">
         📋 All Meals Management
       </h2>
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         {/* Total */}
-        <p className="text-sm font-medium">Total: {totalCount} meals found</p>
+        <p className="text-sm font-medium bg-base-200 px-3 py-1 rounded-lg shadow-sm">
+          Total: {totalCount} meals
+        </p>
 
         {/* Search Box */}
         <div className="relative w-full sm:w-72">
           <input
             type="text"
             placeholder="🔍 Search meal by title"
-            className="input input-sm input-bordered w-full pr-8"
+            className="input input-sm input-bordered w-full pr-8 rounded-lg shadow-sm"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
             <button
-              className="absolute right-2 top-2 text-gray-400 hover:text-red-500"
+              className="absolute right-3 top-2.5 text-gray-400 hover:text-red-500"
               onClick={() => setSearch("")}
               aria-label="Clear search"
             >
@@ -117,7 +122,7 @@ const AllMeals = () => {
           <select
             onChange={(e) => setSortField(e.target.value)}
             value={sortField}
-            className="select select-sm select-bordered w-36"
+            className="select select-sm select-bordered rounded-lg"
           >
             <option value="likes">Top Likes</option>
             <option value="reviews_count">Top Reviews</option>
@@ -127,7 +132,7 @@ const AllMeals = () => {
           <select
             onChange={(e) => setSortOrder(e.target.value)}
             value={sortOrder}
-            className="select select-sm select-bordered w-28"
+            className="select select-sm select-bordered rounded-lg"
           >
             <option value="asc">Asc</option>
             <option value="desc">Desc</option>
@@ -136,9 +141,9 @@ const AllMeals = () => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg shadow">
-        <table className="table table-zebra text-center text-sm w-full">
-          <thead className="bg-base-200 text-base">
+      <div className="overflow-x-auto rounded-xl shadow-md border border-base-200">
+        <table className="table text-center text-sm w-full">
+          <thead className="bg-base-200 text-base font-semibold">
             <tr>
               <th>Title</th>
               <th>Likes</th>
@@ -152,11 +157,9 @@ const AllMeals = () => {
           <tbody>
             {isLoading ? (
               [...Array(limit)].map((_, i) => (
-                <tr key={i}>
-                  <td
-                    colSpan="7"
-                    className="py-4 animate-pulse text-center text-gray-300"
-                  >
+                <tr key={i} className="animate-pulse">
+                  <td colSpan="7" className="py-4 text-center text-gray-300">
+                    <ImSpinner2 className="animate-spin inline mr-2" />
                     Loading...
                   </td>
                 </tr>
@@ -169,8 +172,11 @@ const AllMeals = () => {
               </tr>
             ) : (
               meals.map((meal) => (
-                <tr key={meal._id}>
-                  <td className="text-left">{meal.title}</td>
+                <tr
+                  key={meal._id}
+                  className="hover:bg-base-200 transition-colors"
+                >
+                  <td className="text-left font-medium">{meal.title}</td>
                   <td>{meal.likes}</td>
                   <td>{meal.reviews_count}</td>
                   <td>{meal.rating}</td>
@@ -182,21 +188,21 @@ const AllMeals = () => {
                         onClick={() =>
                           navigate(`/dashboard/update-meal/${meal._id}`)
                         }
-                        className="btn btn-sm btn-info"
+                        className="btn btn-xs btn-info flex items-center gap-1"
                       >
-                        Update
+                        <FaEdit /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(meal._id)}
-                        className="btn btn-sm btn-error"
+                        className="btn btn-xs btn-error flex items-center gap-1"
                       >
-                        Delete
+                        <FaTrash /> Delete
                       </button>
                       <button
                         onClick={() => navigate(`/meal/${meal._id}`)}
-                        className="btn btn-sm btn-success"
+                        className="btn btn-xs btn-success flex items-center gap-1"
                       >
-                        View
+                        <FaEye /> View
                       </button>
                     </div>
                   </td>

@@ -1,17 +1,17 @@
-import React, { useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import useAuth from '../../../../hooks/useAuth';
-import useSecureAxios from '../../../../hooks/useSecureAxios';
-import useImageUploader from '../../../../hooks/useImageUploader';
-import { Bounce, toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import useAuth from "../../../../hooks/useAuth";
+import useSecureAxios from "../../../../hooks/useSecureAxios";
+import useImageUploader from "../../../../hooks/useImageUploader";
+import { Bounce, toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddMeal = () => {
   const { user } = useAuth();
   const secureAxios = useSecureAxios();
   const { upload, uploading } = useImageUploader();
 
-  const inputRef = useRef(null); // ✅ New ref
+  const inputRef = useRef(null);
   const [preview, setPreview] = useState(null);
 
   const {
@@ -20,15 +20,14 @@ const AddMeal = () => {
     reset,
     setValue,
     formState: { errors },
-    watch,
-    trigger
+    trigger,
   } = useForm();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setPreview(URL.createObjectURL(file));
-      setValue('image', [file], { shouldValidate: true });
+      setValue("image", [file], { shouldValidate: true });
     }
   };
 
@@ -36,15 +35,14 @@ const AddMeal = () => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
     if (file) {
-      // ✅ Update input ref manually (important!)
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      inputRef.current.files = dataTransfer.files;
-
-      setValue('image', [file], { shouldValidate: true });
-      trigger('image');
       setPreview(URL.createObjectURL(file));
+      setValue("image", [file], { shouldValidate: true });
+      trigger("image");
     }
+  };
+
+  const handleClickUpload = () => {
+    inputRef.current.click();
   };
 
   const onSubmit = async (data) => {
@@ -60,141 +58,171 @@ const AddMeal = () => {
         price: parseFloat(data.price),
         image: imageUrl,
         postTime: new Date().toISOString(),
-        distributorName: user?.displayName || 'N/A',
+        distributorName: user?.displayName || "N/A",
         distributorEmail: user?.email,
         rating: 0,
         likes: 0,
         reviews_count: 0,
       };
 
-      const res = await secureAxios.post('/meals', meal);
+      const res = await secureAxios.post("/meals", meal);
       if (res.data.insertedId) {
-        toast('🦄 Meal successfully added!', {
+        toast.success("✅ Meal successfully added!", {
           position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
+          autoClose: 4000,
           transition: Bounce,
         });
         reset();
         setPreview(null);
       }
     } catch (error) {
-      toast.error(`❌ Error: ${error.message || 'Something went wrong'}`);
+      toast.error(`❌ Error: ${error.message || "Something went wrong"}`);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-base-100 shadow rounded">
+    <div className="w-full p-2 bg-base-100 shadow-xl rounded-2xl">
       <ToastContainer />
-      <h2 className="text-2xl font-bold text-center mb-6">🍽️ Add New Meal</h2>
+      <h2 className="text-3xl font-bold text-center my-4">🍽️ Add New Meal</h2>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+      >
+        {/* Left Side → Form Inputs */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="card bg-base-200 shadow-md p-4 rounded-xl space-y-4 hover:shadow-lg transition">
+            {/* Title */}
+            <div className="flex flex-col relative">
+              <label className="font-medium mb-1">Meal Title</label>
+              <input
+                {...register("title", { required: true })}
+                className="input input-bordered w-full"
+                placeholder="Meal Title"
+              />
+              {errors.title && (
+                <p className="text-red-500 text-sm mt-1">Title is required</p>
+              )}
+            </div>
 
-        {/* Title Input with search */}
-        <div className="flex flex-col relative">
-          <input
-            {...register('title', { required: true })}
-            className="input input-bordered w-full pr-16 focus:outline-none focus:border-gray-600"
-            placeholder="Meal Title"
-          />
-          {watch('title') && watch('title').trim() !== '' && (
-            <a
-              href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(watch('title'))}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute right-1 top-1 btn btn-secondary btn-sm z-10 text-md">
-              🔍
-            </a>
-          )}
-          {errors.title && <p className="text-red-500 text-sm mt-1">Title is required</p>}
+            {/* Category */}
+            <div>
+              <label className="font-medium mb-1">Category</label>
+              <input
+                {...register("category", { required: true })}
+                className="input input-bordered w-full"
+                placeholder="Category"
+              />
+              {errors.category && (
+                <p className="text-red-500 text-sm mt-1">
+                  Category is required
+                </p>
+              )}
+            </div>
+
+            {/* Price */}
+            <div>
+              <label className="font-medium mb-1">Price (BDT)</label>
+              <input
+                {...register("price", { required: true })}
+                type="number"
+                className="input input-bordered w-full"
+                placeholder="Price"
+              />
+              {errors.price && (
+                <p className="text-red-500 text-sm mt-1">Price is required</p>
+              )}
+            </div>
+
+            {/* Distributor */}
+            <div>
+              <label className="font-medium mb-1">Distributor Name</label>
+              <input
+                className="input input-bordered w-full bg-gray-400 cursor-not-allowed"
+                value={user?.displayName || ""}
+                readOnly
+              />
+            </div>
+            <div>
+              <label className="font-medium mb-1">Distributor Email</label>
+              <input
+                className="input input-bordered w-full bg-gray-400 cursor-not-allowed"
+                value={user?.email || ""}
+                readOnly
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="font-medium mb-1">Meal Description</label>
+            <textarea
+              {...register("description", { required: true })}
+              className="bg-base-200 text-base-content textarea textarea-bordered w-full"
+              placeholder="Meal description..."
+              rows={4}
+            />
+            {errors.description && (
+              <p className="text-red-500">Description is required</p>
+            )}
+          </div>
         </div>
 
-        {/* Category */}
-        <div className="flex flex-col">
-          <input
-            {...register('category', { required: true })}
-            className="input input-bordered w-full focus:outline-none focus:border-gray-600"
-            placeholder="Category"
-          />
-          {errors.category && <p className="text-red-500 text-sm mt-1">Category is required</p>}
-        </div>
-
-        {/* Price */}
-        <div className="flex flex-col">
-          <input
-            {...register('price', { required: true })}
-            type="number"
-            className="input input-bordered w-full focus:outline-none focus:border-gray-600"
-            placeholder="Price (BDT)"
-          />
-          {errors.price && <p className="text-red-500 text-sm mt-1">Price is required</p>}
-        </div>
-
-        {/* Drag & Drop Image Upload */}
-        <div className="flex flex-col">
-          <label
+        {/* Right Side → Image + Textarea */}
+        <div className="space-y-4">
+          <label className="font-medium">Upload Image</label>
+          <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="w-full h-[40px] border-dashed border-2 border-gray-400 rounded flex items-center justify-center text-center cursor-pointer overflow-hidden"
+            onClick={handleClickUpload}
+            className="bg-base-200 w-full h-80 border-dashed border-2 border-gray-400 rounded-xl flex items-center justify-center text-center cursor-pointer overflow-hidden hover:shadow-xl transition-all"
           >
-            {!preview && <p className="text-gray-600 text-sm">Drag & drop image here or click</p>}
+            {!preview && (
+              <p className="text-gray-600 text-sm px-4">
+                Drag & drop image here or click to upload
+              </p>
+            )}
             <input
-              {...register('image', { required: true })}
+              {...register("image", { required: true })}
               ref={inputRef}
               type="file"
               onChange={handleImageChange}
-              className="file-input hidden"
+              className="hidden"
             />
             {preview && (
               <img
                 src={preview}
                 alt="Preview"
-                className="h-full object-contain"
+                className="h-full w-full object-cover"
               />
             )}
-          </label>
-          {errors.image && <p className="text-red-500 text-sm mt-1">Image is required</p>}
+          </div>
+          {errors.image && (
+            <p className="text-red-500 text-sm">Image is required</p>
+          )}
+
+          {/* Ingredients */}
+          <div>
+            <label className="font-medium mb-1">Ingredients</label>
+            <textarea
+              {...register("ingredients", { required: true })}
+              className="bg-base-200 text-base-content textarea textarea-bordered w-full"
+              placeholder="List ingredients..."
+              rows={3}
+            />
+            {errors.ingredients && (
+              <p className="text-red-500">Ingredients are required</p>
+            )}
+          </div>
         </div>
-
-        {/* Ingredients */}
-        <textarea
-          {...register('ingredients', { required: true })}
-          className="textarea textarea-bordered w-full md:col-span-2 focus:outline-none focus:border-gray-600"
-          placeholder="Ingredients"
-        />
-        {errors.ingredients && <p className="text-red-500">Ingredients are required</p>}
-
-        {/* Description */}
-        <textarea
-          {...register('description', { required: true })}
-          className="textarea textarea-bordered w-full md:col-span-2 focus:outline-none focus:border-gray-600"
-          placeholder="Meal Description"
-        />
-        {errors.description && <p className="text-red-500">Description is required</p>}
-
-        {/* Distributor Info */}
-        <div className="md:col-span-2">
-          <input className="input input-bordered w-full focus:outline-none focus:border-gray-600" value={user?.displayName || ''} readOnly />
-          <p className="text-xs text-gray-500 ml-1">Distributor Name</p>
-        </div>
-        <div className="md:col-span-2">
-          <input className="input input-bordered w-full focus:outline-none focus:border-gray-600" value={user?.email || ''} readOnly />
-          <p className="text-xs text-gray-500 ml-1">Distributor Email</p>
-        </div>
-
-        {/* Submit */}
-        <div className="md:col-span-2">
+        {/* Submit Button Full Width */}
+        <div className="lg:col-span-3">
           <button
             type="submit"
-            className="btn btn-primary w-full focus:outline-none focus:border-gray-600"
+            className="btn btn-primary w-full py-2 text-lg hover:scale-[1.01] transition-transform"
             disabled={uploading}
           >
-            {uploading ? 'Uploading...' : 'Add Meal'}
+            {uploading ? "Uploading..." : "Add Meal"}
           </button>
         </div>
       </form>

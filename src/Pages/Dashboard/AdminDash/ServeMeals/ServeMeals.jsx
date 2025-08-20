@@ -21,7 +21,7 @@ const ServeMeals = () => {
     goToPrevPage,
   } = usePagination({ initialTotal: 0, limit: 10 });
 
-  // 🔁 Debounced search effect
+  // Debounced search
   const debouncedSearch = useMemo(
     () => debounce((value) => setSearchText(value), 500),
     []
@@ -29,14 +29,14 @@ const ServeMeals = () => {
 
   useEffect(() => {
     debouncedSearch(searchInput);
-    return () => debouncedSearch.cancel(); // Cleanup debounce on unmount
+    return () => debouncedSearch.cancel();
   }, [searchInput, debouncedSearch]);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['all-meal-requests', page, searchText],
     queryFn: async () => {
       const res = await secureAxios.get(
-        `/admin/all-meal-requests?page=${page}&limit=${limit}&search=${searchText}`
+        `/admin/all-meal-requests?page=${page}&limit=${limit}&search=${encodeURIComponent(searchText)}`
       );
       return res.data;
     },
@@ -70,15 +70,15 @@ const ServeMeals = () => {
         refetch();
       }
     } catch (error) {
-      Swal.fire('Error', 'Failed to serve meal.', error);
+      Swal.fire('Error', 'Failed to serve meal.', error.message || error);
     }
   };
 
   return (
-    <div className="p-5">
+    <div className="p-5 max-w-full">
       <h1 className="text-2xl font-semibold text-center mb-6">🍱 Serve Meals</h1>
 
-      {/* 🔍 Search */}
+      {/* Search */}
       <div className="mb-4 flex justify-end">
         <input
           type="text"
@@ -89,7 +89,7 @@ const ServeMeals = () => {
         />
       </div>
 
-      {/* 📋 Table */}
+      {/* Table */}
       <div className="overflow-x-auto rounded-lg shadow border">
         <table className="min-w-full text-sm text-left divide-y divide-gray-200">
           <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
@@ -124,7 +124,7 @@ const ServeMeals = () => {
               </tr>
             ) : (
               requests.map((req, idx) => (
-                <tr key={req._id}>
+                <tr key={req._id} className="hover:bg-gray-50 transition duration-200">
                   <td className="px-4 py-3">{(page - 1) * limit + idx + 1}</td>
                   <td className="px-4 py-3 font-medium">{req.mealTitle || 'N/A'}</td>
                   <td className="px-4 py-3">{req.userEmail}</td>
@@ -133,9 +133,7 @@ const ServeMeals = () => {
                       {req.from}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    {moment(req.requestedAt).format('YYYY-MM-DD HH:mm')}
-                  </td>
+                  <td className="px-4 py-3">{moment(req.requestedAt).format('YYYY-MM-DD HH:mm')}</td>
                   <td className="px-4 py-3">
                     <span
                       className={`text-xs font-semibold px-2 py-1 rounded-full ${
@@ -166,7 +164,7 @@ const ServeMeals = () => {
         </table>
       </div>
 
-      {/* 📄 Pagination */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <button className="btn btn-sm" onClick={goToPrevPage} disabled={page === 1}>

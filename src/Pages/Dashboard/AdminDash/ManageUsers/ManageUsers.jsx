@@ -25,7 +25,7 @@ const ManageUsers = () => {
 
     const result = await Swal.fire({
       title: `Are you sure?`,
-      text: `You are about to ${actionText}. This action can be reversed later.`,
+      text: `You are about to ${actionText}.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: makeAdmin ? '#3085d6' : '#d33',
@@ -51,10 +51,9 @@ const ManageUsers = () => {
           refetch();
         }
       } catch (err) {
-        const serverMessage = err.response?.data?.message || 'Error updating role';
         Swal.fire({
           title: 'Permission Denied',
-          text: serverMessage,
+          text: err.response?.data?.message || 'Error updating role',
           icon: 'error',
         });
       }
@@ -62,9 +61,9 @@ const ManageUsers = () => {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className='flex flex-col justify-center items-center'>
-        <h2 className="text-2xl text-center font-bold mb-4">🔍 Search Users by Email or Name</h2>
+    <div className="p-6 max-w-6xl mx-auto">
+      <div className="flex flex-col justify-center items-center">
+        <h2 className="text-2xl font-bold mb-4">🔍 Search Users</h2>
         <input
           type="text"
           value={searchQuery}
@@ -75,24 +74,24 @@ const ManageUsers = () => {
       </div>
 
       {isLoading ? (
-        <p>Loading...</p>
+        <p className="text-center">Loading...</p>
       ) : users.length === 0 ? (
         <p className="text-gray-500 text-center">No users found</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="table table-zebra">
-            <thead>
+        <div className="overflow-x-auto shadow-lg rounded-lg">
+          <table className="table w-full">
+            <thead className="bg-base-200">
               <tr>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Subscription</th>
                 <th>Role</th>
-                <th>Action</th>
+                <th className="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               {users.map((u) => (
-                <tr key={u._id}>
+                <tr key={u._id} className="hover:bg-base-100">
                   <td>{u.name || 'N/A'}</td>
                   <td>{u.email}</td>
                   <td>
@@ -101,11 +100,11 @@ const ManageUsers = () => {
                     </span>
                   </td>
                   <td>
-                    <span className={`badge ${u.role === 'admin' ? 'badge-success' : 'badge-neutral'}`}>
+                    <span className={`badge ${u.role === 'admin' ? 'badge-primary' : 'badge-neutral'}`}>
                       {u.role || 'user'}
                     </span>
                   </td>
-                  <td>
+                  <td className="text-center">
                     {u.role === 'admin' ? (
                       <button
                         onClick={() => handleRoleUpdate(u._id, false)}

@@ -7,7 +7,8 @@ import { Bounce, toast, ToastContainer } from 'react-toastify';
 import useAuth from '../../../../hooks/useAuth';
 import useImageUploader from '../../../../hooks/useImageUploader';
 import usePagination from '../../../../hooks/usePagination';
-
+import { FaTimes } from 'react-icons/fa';
+import { ImSpinner2 } from 'react-icons/im';
 
 const UpcomingMeals = () => {
   const secureAxios = useSecureAxios();
@@ -30,7 +31,6 @@ const UpcomingMeals = () => {
     formState: { errors },
   } = useForm();
 
-  // Pagination hook with initial total 0 and limit 10
   const {
     page,
     limit,
@@ -41,7 +41,7 @@ const UpcomingMeals = () => {
     goToPrevPage,
   } = usePagination({ initialTotal: 0, limit: 10 });
 
-  // Debounce search input for better UX
+  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchDebounced(search);
@@ -49,7 +49,7 @@ const UpcomingMeals = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // React Query to fetch paginated + searched meals
+  // Fetch upcoming meals
   const { data = {}, isLoading, refetch } = useQuery({
     queryKey: ['upcoming-meals', page, searchDebounced],
     queryFn: async () => {
@@ -64,7 +64,6 @@ const UpcomingMeals = () => {
   const meals = data.data || [];
   const totalCount = data.total || 0;
 
-  // Update pagination total when totalCount changes
   useEffect(() => {
     setTotal(totalCount);
   }, [totalCount, setTotal]);
@@ -95,7 +94,6 @@ const UpcomingMeals = () => {
     }
   };
 
-
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -111,7 +109,6 @@ const UpcomingMeals = () => {
       const dataTransfer = new DataTransfer();
       dataTransfer.items.add(file);
       inputRef.current.files = dataTransfer.files;
-
       setValue('image', [file], { shouldValidate: true });
       trigger('image');
       setPreview(URL.createObjectURL(file));
@@ -159,29 +156,39 @@ const UpcomingMeals = () => {
   };
 
   return (
-    <div className="max-w-full w-full">
+    <div className="max-w-full w-full p-4 sm:p-6 bg-base-100 rounded-xl shadow">
       <ToastContainer />
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">📆 Upcoming Meals</h2>
-        <button onClick={() => setShowModal(true)} className="btn btn-sm btn-primary">
-          ➕ Add Upcoming Meal
-        </button>
+      <h2 className="text-2xl font-bold text-center mb-6">📆 Upcoming Meals</h2>
+
+      {/* Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <p className="text-sm font-medium bg-base-200 px-3 py-1 rounded-lg shadow-sm">
+          Total: {totalCount} upcoming meals
+        </p>
+        <div className="relative w-full sm:w-72">
+          <input
+            type="text"
+            placeholder="🔍 Search upcoming meal"
+            className="input input-sm input-bordered w-full pr-8 rounded-lg shadow-sm"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button
+              className="absolute right-3 top-2.5 text-gray-400 hover:text-red-500"
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
+            >
+              <FaTimes />
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-        <p className="text-sm font-medium">Total: {totalCount} upcoming meals</p>
-        <input
-          type="text"
-          placeholder="🔍 Search upcoming meal"
-          className="input input-sm input-bordered w-full sm:w-72"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      <div className="overflow-x-auto rounded shadow">
-        <table className="table table-zebra text-sm text-center w-full">
-          <thead className="bg-base-200 text-base">
+      {/* Table */}
+      <div className="overflow-x-auto rounded-xl shadow-md border border-base-200">
+        <table className="table text-center text-sm w-full">
+          <thead className="bg-base-200 text-base font-semibold">
             <tr>
               <th>Title</th>
               <th>Likes</th>
@@ -193,30 +200,34 @@ const UpcomingMeals = () => {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr>
-                <td colSpan="6" className="py-6">
-                  Loading...
-                </td>
-              </tr>
+              [...Array(limit)].map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td colSpan="6" className="py-4 text-center text-gray-300">
+                    <ImSpinner2 className="animate-spin inline mr-2" /> Loading...
+                  </td>
+                </tr>
+              ))
             ) : meals.length === 0 ? (
               <tr>
-                <td colSpan="6" className="py-6 text-gray-500">
-                  No upcoming meals found
+                <td colSpan="6" className="py-8 text-center text-gray-500">
+                  No upcoming meals found.
                 </td>
               </tr>
             ) : (
               meals.map((meal) => (
-                <tr key={meal._id}>
-                  <td className='text-left'>{meal.title}</td>
+                <tr key={meal._id} className="hover:bg-base-200 transition-colors">
+                  <td className="text-left font-medium">{meal.title}</td>
                   <td>{meal.likes || 0}</td>
                   <td>{meal.category}</td>
                   <td>৳{meal.price}</td>
                   <td>{meal.distributorName}</td>
                   <td>
-                    <button onClick={() => handlePublish(meal)} className="btn btn-sm btn-success">
+                    <button
+                      onClick={() => handlePublish(meal)}
+                      className="btn btn-xs btn-success"
+                    >
                       Publish
                     </button>
-
                   </td>
                 </tr>
               ))
@@ -225,7 +236,7 @@ const UpcomingMeals = () => {
         </table>
       </div>
 
-      {/* Pagination Controls */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <button className="btn btn-sm" onClick={goToPrevPage} disabled={page === 1}>
@@ -266,7 +277,9 @@ const UpcomingMeals = () => {
                 />
                 {watch('title') && (
                   <a
-                    href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(watch('title'))}`}
+                    href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(
+                      watch('title')
+                    )}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="absolute right-1 top-1 btn btn-sm btn-secondary z-10"
@@ -274,7 +287,9 @@ const UpcomingMeals = () => {
                     🔍
                   </a>
                 )}
-                {errors.title && <span className="text-sm text-red-500">Title is required</span>}
+                {errors.title && (
+                  <span className="text-sm text-red-500">Title is required</span>
+                )}
               </div>
 
               {/* Category */}
@@ -284,7 +299,9 @@ const UpcomingMeals = () => {
                   className="input input-bordered w-full"
                   placeholder="Category"
                 />
-                {errors.category && <span className="text-sm text-red-500">Category is required</span>}
+                {errors.category && (
+                  <span className="text-sm text-red-500">Category is required</span>
+                )}
               </div>
 
               {/* Price */}
@@ -295,7 +312,9 @@ const UpcomingMeals = () => {
                   className="input input-bordered w-full"
                   placeholder="Price (BDT)"
                 />
-                {errors.price && <span className="text-sm text-red-500">Price is required</span>}
+                {errors.price && (
+                  <span className="text-sm text-red-500">Price is required</span>
+                )}
               </div>
 
               {/* Image Upload */}
@@ -310,7 +329,9 @@ const UpcomingMeals = () => {
                 />
                 {preview && <img src={preview} alt="Preview" className="h-full object-contain" />}
                 {errors.image && (
-                  <span className="text-sm text-red-500 absolute -bottom-5 left-0">Image is required</span>
+                  <span className="text-sm text-red-500 absolute -bottom-5 left-0">
+                    Image is required
+                  </span>
                 )}
               </div>
 
@@ -321,7 +342,9 @@ const UpcomingMeals = () => {
                   className="textarea textarea-bordered w-full"
                   placeholder="Ingredients"
                 />
-                {errors.ingredients && <span className="text-sm text-red-500">Ingredients required</span>}
+                {errors.ingredients && (
+                  <span className="text-sm text-red-500">Ingredients required</span>
+                )}
               </div>
 
               {/* Description */}
@@ -331,7 +354,9 @@ const UpcomingMeals = () => {
                   className="textarea textarea-bordered w-full"
                   placeholder="Meal Description"
                 />
-                {errors.description && <span className="text-sm text-red-500">Description required</span>}
+                {errors.description && (
+                  <span className="text-sm text-red-500">Description required</span>
+                )}
               </div>
 
               {/* Buttons */}
@@ -347,12 +372,6 @@ const UpcomingMeals = () => {
           </div>
         </div>
       )}
-
-      <div className='flex justify-center py-10'>
-        <button onClick={() => setShowModal(true)} className="btn btn-sm btn-primary">
-          ➕ Add Upcoming Meal
-        </button>
-      </div>
     </div>
   );
 };

@@ -101,7 +101,7 @@ const DashLayout = () => {
         {/* Sidebar */}
         <aside
           ref={sidebarRef}
-          className="relative bg-base-100 shadow-md transition-all duration-300 flex flex-col"
+          className="w-64 bg-base-100 sticky top-0 h-screen overflow-y-auto"
           style={{ width: `${width}px`, flexShrink: 0 }}
         >
           {/* Toggle */}

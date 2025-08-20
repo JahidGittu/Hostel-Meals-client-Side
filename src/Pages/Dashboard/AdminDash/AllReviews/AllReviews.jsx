@@ -26,7 +26,7 @@ const AllReviews = () => {
       const res = await axiosSecure.get(`/admin/all-reviews?page=${page}&limit=${limit}`);
       return res.data;
     },
-    keepPreviousData: false,
+    keepPreviousData: true,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -60,14 +60,6 @@ const AllReviews = () => {
     }
   };
 
-  if (isLoading) {
-    return <div className="text-center py-10 text-gray-600">Loading...</div>;
-  }
-
-  if (isError) {
-    return <div className="text-red-500 text-center py-10">Something went wrong. Please try again later.</div>;
-  }
-
   return (
     <div className="p-5 max-w-full">
       <h1 className="text-2xl font-semibold mb-6 text-center">📝 All Meal Reviews</h1>
@@ -86,7 +78,19 @@ const AllReviews = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {reviews.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan="7" className="px-4 py-6 text-center text-gray-500">
+                  Loading...
+                </td>
+              </tr>
+            ) : isError ? (
+              <tr>
+                <td colSpan="7" className="px-4 py-6 text-center text-red-500">
+                  Something went wrong. Please try again later.
+                </td>
+              </tr>
+            ) : reviews.length === 0 ? (
               <tr>
                 <td colSpan="7" className="px-4 py-6 text-center text-gray-500">
                   No reviews found.
@@ -96,10 +100,10 @@ const AllReviews = () => {
               reviews.map((rev, idx) => (
                 <tr
                   key={rev._id || `${rev.mealId}-${rev.reviewerEmail}-${idx}`}
-                  className="hover:bg-gray-800 transition duration-300"
+                  className="hover:bg-gray-50 transition duration-200"
                 >
                   <td className="px-4 py-3">{(page - 1) * limit + idx + 1}</td>
-                  <td className="px-4 py-3">{rev.mealTitle}</td>
+                  <td className="px-4 py-3 font-medium">{rev.mealTitle}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
                       <img
@@ -113,7 +117,7 @@ const AllReviews = () => {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">{rev.reviewText}</td>
+                  <td className="px-4 py-3 line-clamp-2">{rev.reviewText}</td>
                   <td className="px-4 py-3">
                     <span className="text-xs px-2 py-1 bg-orange-400 rounded-full capitalize">
                       {rev.from}
@@ -143,12 +147,12 @@ const AllReviews = () => {
         </table>
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex justify-center mt-6 gap-2 flex-wrap">
           <button className="btn btn-sm" onClick={goToPrevPage} disabled={page === 1}>
             Prev
           </button>
-
           {Array.from({ length: totalPages }, (_, i) => (
             <button
               key={i}
@@ -158,7 +162,6 @@ const AllReviews = () => {
               {i + 1}
             </button>
           ))}
-
           <button className="btn btn-sm" onClick={goToNextPage} disabled={page === totalPages}>
             Next
           </button>

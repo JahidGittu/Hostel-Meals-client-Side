@@ -4,11 +4,14 @@ import { FaBell, FaBars, FaMoon, FaSun } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Logo from "../Logo/Logo";
 import useAuth from "../../../hooks/useAuth";
+import useAdmin from "../../../hooks/useAdmin";
 
 const Navbar = ({ dashboard = false }) => {
   const { user, logoutUser, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  const [isAdmin] = useAdmin();
 
   const location = useLocation();
 
@@ -89,7 +92,7 @@ const Navbar = ({ dashboard = false }) => {
         <div
           className={`navbar px-4 transition-all duration-300 ${
             isScrolled
-              ? "bg-base-300 shadow backdrop-blur-md text-base-content rounded-b-3xl"
+              ? "bg-base-300 shadow backdrop-blur-md text-base-content"
               : isHomePage
               ? "bg-transparent text-white"
               : "bg-base-300 text-base-content"
@@ -146,9 +149,12 @@ const Navbar = ({ dashboard = false }) => {
                     className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-52"
                   >
                     <li>
-                      <p className="font-semibold text-center">
+                      <NavLink
+                        to={isAdmin ? "/dashboard/admin-profile" : "/dashboard/my-profile"}
+                        className="font-semibold text-center"
+                      >
                         {user.displayName}
-                      </p>
+                      </NavLink>
                     </li>
                     <li>
                       <NavLink to="/dashboard">Dashboard</NavLink>
@@ -178,8 +184,7 @@ const Navbar = ({ dashboard = false }) => {
             <div className="flex items-center gap-3">
               <button
                 className="btn btn-ghost btn-circle"
-                onClick={toggleTheme}
-              >
+                onClick={toggleTheme}>
                 {darkMode ? <FaSun /> : <FaMoon />}
               </button>
               <button className="btn btn-ghost btn-circle">
@@ -198,12 +203,14 @@ const Navbar = ({ dashboard = false }) => {
                   </div>
                   <ul
                     tabIndex={0}
-                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-shadow-base-content rounded-box w-52"
-                  >
-                    <li>
-                      <p className="font-semibold text-center">
+                    className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-shadow-base-content rounded-box w-52">
+                    <li> 
+                      <NavLink
+                        to={isAdmin ? "/dashboard/admin-profile" : "/dashboard/my-profile"}
+                        className="font-semibold text-center"
+                      >
                         {user.displayName}
-                      </p>
+                      </NavLink>
                     </li>
                     <li>
                       <NavLink to="/dashboard">Dashboard</NavLink>
@@ -259,9 +266,12 @@ const Navbar = ({ dashboard = false }) => {
                     className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-52"
                   >
                     <li>
-                      <p className="font-semibold text-center">
+                     <NavLink
+                        to={isAdmin ? "/dashboard/admin-profile" : "/dashboard/my-profile"}
+                        className="font-semibold text-center"
+                      >
                         {user.displayName}
-                      </p>
+                      </NavLink>
                     </li>
                     <li>
                       <NavLink to="/dashboard">Dashboard</NavLink>
