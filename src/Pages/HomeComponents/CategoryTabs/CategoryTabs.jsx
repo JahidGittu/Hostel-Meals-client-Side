@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router";
 import useAxios from "../../../hooks/useAxios";
 
+// Categories
 const categories = ["Breakfast", "Lunch", "Dinner", "Snacks/Breakfast", "All"];
 
 const CategoryTabs = () => {
@@ -11,42 +12,54 @@ const CategoryTabs = () => {
   const [activeTab, setActiveTab] = useState("Meal");
   const [mealsData, setMealsData] = useState({ meals: [], upcomingMeals: [] });
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false); // <-- Track if data already loaded
 
   const headerRef = useRef(null);
   const sectionRef = useRef(null);
+  const [sectionInView, setSectionInView] = useState(false);
 
+  // IntersectionObserver to check if section is in viewport
   useEffect(() => {
-    setLoading(true);
+    const observer = new IntersectionObserver(
+      ([entry]) => setSectionInView(entry.isIntersecting),
+      { rootMargin: "-100px" }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
-    const url = `/meals-by-category?category=${encodeURIComponent(
-      selectedCategory
-    )}&type=${activeTab === "Meal" ? "meal" : "upcoming"}&limit=${limit}`;
+  // Fetch meals (scroll-triggered but only once)
+  useEffect(() => {
+    if (!dataLoaded) {
+      setLoading(true);
+      const url = `/meals-by-category?category=${encodeURIComponent(
+        selectedCategory
+      )}&type=${activeTab === "Meal" ? "meal" : "upcoming"}&limit=${limit}`;
 
-    axiosInstance
-      .get(url)
-      .then((res) => setMealsData(res.data))
-      .catch(() => setMealsData({ meals: [], upcomingMeals: [] }))
-      .finally(() => {
-        setLoading(false);
+      axiosInstance
+        .get(url)
+        .then((res) => {
+          setMealsData(res.data);
+          setDataLoaded(true); // Mark as loaded
+        })
+        .catch(() => setMealsData({ meals: [], upcomingMeals: [] }))
+        .finally(() => setLoading(false));
+    }
 
-        // Scroll automatically header-এর নিচে + extra spacing
-        const extraSpacing = Math.round(window.innerHeight * 0.1);
-        const headerHeight =
-          (headerRef.current?.offsetHeight || 0) + extraSpacing;
+    // Smooth scroll if section is in view
+    if (sectionInView && sectionRef.current) {
+      const extraSpacing = Math.round(window.innerHeight * 0.1);
+      const headerHeight = (headerRef.current?.offsetHeight || 0) + extraSpacing;
+      const sectionTop = sectionRef.current.getBoundingClientRect().top + window.scrollY;
 
-        if (sectionRef.current) {
-          const sectionTop =
-            sectionRef.current.getBoundingClientRect().top + window.scrollY;
-          window.scrollTo({
-            top: sectionTop - headerHeight,
-            behavior: "smooth",
-          });
-        }
+      window.scrollTo({
+        top: sectionTop - headerHeight,
+        behavior: "smooth",
       });
-  }, [selectedCategory, limit, activeTab, axiosInstance]);
+    }
+  }, [sectionInView, selectedCategory, limit, activeTab, axiosInstance, dataLoaded]);
 
-  const mealsToRender =
-    activeTab === "Meal" ? mealsData.meals : mealsData.upcomingMeals;
+  const mealsToRender = activeTab === "Meal" ? mealsData.meals : mealsData.upcomingMeals;
 
   return (
     <div className="px-4 max-w-7xl mx-auto">
@@ -72,6 +85,7 @@ const CategoryTabs = () => {
               onClick={() => {
                 setSelectedCategory(cat);
                 setLimit(8);
+                setDataLoaded(false); // Reset dataLoaded when category changes
               }}
               className={`px-5 py-2 rounded-full font-medium text-sm transition-all duration-300 ${
                 selectedCategory === cat
@@ -84,12 +98,14 @@ const CategoryTabs = () => {
           ))}
         </div>
 
-        {/* Meal / Upcoming Tabs + Limit Selector */}
+        {/* Tabs + Limit Selector */}
         <div className="flex justify-between items-center flex-wrap gap-3">
-          {/* Tabs */}
           <div className="flex gap-3 justify-around items-center w-full">
             <button
-              onClick={() => setActiveTab("Meal")}
+              onClick={() => {
+                setActiveTab("Meal");
+                setDataLoaded(false); // Reset when tab changes
+              }}
               className={`px-4 py-1 rounded-full text-sm font-semibold transition btn ${
                 activeTab === "Meal"
                   ? "btn-secondary"
@@ -99,7 +115,10 @@ const CategoryTabs = () => {
               Meal
             </button>
             <button
-              onClick={() => setActiveTab("Upcoming")}
+              onClick={() => {
+                setActiveTab("Upcoming");
+                setDataLoaded(false); // Reset when tab changes
+              }}
               className={`px-4 py-1 rounded-full text-sm font-semibold transition btn ${
                 activeTab === "Upcoming"
                   ? "btn-secondary"
@@ -110,20 +129,24 @@ const CategoryTabs = () => {
             </button>
           </div>
 
-          {/* Limit Selector */}
-          {selectedCategory === "All" && activeTab === "Meal" && (
-            <select
-              value={limit}
-              onChange={(e) => setLimit(Number(e.target.value))}
-              className="select select-bordered w-40"
-            >
-              <option value={4}>Show 4</option>
-              <option value={8}>Show 8</option>
-              <option value={12}>Show 12</option>
-              <option value={16}>Show 16</option>
-              <option value={0}>Show All</option>
-            </select>
-          )}
+          <div className="w-full flex justify-center">
+            {selectedCategory === "All" && activeTab === "Meal" && (
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setDataLoaded(false); // Reset when limit changes
+                }}
+                className="select select-bordered w-40"
+              >
+                <option value={4}>Show 4</option>
+                <option value={8}>Show 8</option>
+                <option value={12}>Show 12</option>
+                <option value={16}>Show 16</option>
+                <option value={0}>Show All</option>
+              </select>
+            )}
+          </div>
         </div>
       </div>
 
@@ -155,7 +178,7 @@ const CategoryTabs = () => {
   );
 };
 
-/* Meal Card Skeleton */
+// Reusable MealCard Skeleton
 const MealCardSkeleton = () => (
   <div className="rounded-xl shadow-md overflow-hidden bg-base-200 animate-pulse flex flex-col">
     <div className="h-48 bg-gray-300"></div>
@@ -172,7 +195,7 @@ const MealCardSkeleton = () => (
   </div>
 );
 
-/* Meal Card Component */
+// Reusable MealCard
 const MealCard = ({ meal, label }) => (
   <div className="relative rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-1 transition duration-300 bg-base-200 flex flex-col">
     <div className="relative h-48">
@@ -181,38 +204,42 @@ const MealCard = ({ meal, label }) => (
         alt={meal.title}
         className="w-full h-full object-cover"
       />
-      <span className="absolute top-2 right-2 bg-base-200 text-base-content px-2 py-1 text-xs rounded shadow">
-        👍 {meal.likes || 0}
-      </span>
+      <div className="absolute top-2 right-2 flex flex-col gap-1">
+        <span className="bg-red-100 text-red-600 px-2 py-1 text-xs rounded shadow font-medium">
+          ❤️ {meal.likes || 0}
+        </span>
+        <span className="bg-blue-100 text-blue-700 px-2 py-1 text-xs rounded shadow font-medium">
+          🗨️ {meal.reviews_count || 0}
+        </span>
+      </div>
     </div>
+
     <div className="p-4 flex flex-col flex-1 justify-between">
-      <div>
-        <h3 className="font-semibold text-lg mb-1 text-base-content line-clamp-1">
+      <div className="space-y-1">
+        <h3 className="text-lg font-semibold text-base-content line-clamp-1">
           {meal.title}
         </h3>
-        <p className="text-sm text-base-content/70 mb-3 line-clamp-2">
+        <p className="text-sm text-base-content/70 line-clamp-2">
           {meal.category}
         </p>
       </div>
-      <div className="flex justify-between items-center text-sm mb-3">
-        <span className="text-base-content/70">
-          📝 {meal.reviews_count || 0} reviews
+
+      <div className="flex justify-between items-center text-sm text-base-content/70 mt-3 mb-2">
+        <span>
+          Price: <span className="text-primary font-bold">৳{meal.price}</span>
         </span>
-        <span className="text-primary font-bold">৳{meal.price}</span>
       </div>
-      <div className="flex justify-between items-center gap-2">
-        <Link
-          to={
-            label === "Meal"
-              ? `/meal-details/${meal._id}`
-              : `/upcoming-meal-details/${meal._id}`
-          }
-          className="btn btn-sm btn-outline flex-1"
-        >
-          Details
-        </Link>
-        <span className="text-xs italic text-base-content/50">{label}</span>
-      </div>
+
+      <Link
+        to={
+          label === "Meal"
+            ? `/meal-details/${meal._id}`
+            : `/upcoming-meal-details/${meal._id}`
+        }
+        className="btn btn-sm btn-outline w-full mt-2"
+      >
+        Details
+      </Link>
     </div>
   </div>
 );

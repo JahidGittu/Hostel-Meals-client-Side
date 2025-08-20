@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 import { FaBell, FaBars, FaMoon, FaSun } from "react-icons/fa";
 import Swal from "sweetalert2";
 import Logo from "../Logo/Logo";
@@ -9,6 +9,10 @@ const Navbar = ({ dashboard = false }) => {
   const { user, logoutUser, loading } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+
+  const location = useLocation();
+
+  const isHomePage = location.pathname === "/";
 
   // scroll effect
   useEffect(() => {
@@ -86,7 +90,9 @@ const Navbar = ({ dashboard = false }) => {
           className={`navbar px-4 transition-all duration-300 ${
             isScrolled
               ? "bg-base-300 shadow backdrop-blur-md text-base-content rounded-b-3xl"
-              : "bg-transparent text-white"
+              : isHomePage
+              ? "bg-transparent text-white"
+              : "bg-base-300 text-base-content"
           }`}
         >
           {/* ----------- Mobile Navbar (sm) ----------- */}
@@ -96,12 +102,14 @@ const Navbar = ({ dashboard = false }) => {
               <div
                 tabIndex={0}
                 role="button"
-                className="btn btn-ghost btn-circle">
+                className="btn btn-ghost btn-circle"
+              >
                 <FaBars className="text-xl" />
               </div>
               <ul
                 tabIndex={0}
-                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-32">
+                className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-300 text-base-content rounded-box w-32"
+              >
                 {navItems}
               </ul>
             </div>

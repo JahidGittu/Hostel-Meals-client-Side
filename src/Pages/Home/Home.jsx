@@ -10,6 +10,7 @@ import useAxios from '../../hooks/useAxios';
 import useSecureAxios from '../../hooks/useSecureAxios';
 import Loading from '../Shared/Loading/Loading';
 import WhyChooseUs from '../HomeComponents/WhyChosseUs/WhyChosseUs';
+import FaqSection from '../HomeComponents/FaqSection/FaqSection';
 
 const Home = () => {
   const secureAxios = useSecureAxios();
@@ -53,7 +54,7 @@ const Home = () => {
   //   },
   // });
 
-  const isLoading = loadingUser || loadingMeals || loadingReviews ;   // || loadingFaqs
+  const isLoading = loadingMeals || loadingReviews ;   // || loadingFaqs
 
   if (isLoading) return <Loading />;
 
@@ -64,6 +65,7 @@ const Home = () => {
       <CategoryTabs />
       <MembershipPage currentUser={currentUser} />
       <PopularMeals meals={popularMeals} />
+      <FaqSection/>
       <Testimonials featuredReviews={featuredReviews} />
       {/* <FaqSection faqs={faqs} /> */}
     </div>

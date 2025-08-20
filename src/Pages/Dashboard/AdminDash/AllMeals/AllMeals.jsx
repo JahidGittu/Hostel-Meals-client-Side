@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import useSecureAxios from '../../../../hooks/useSecureAxios';
-import usePagination from '../../../../hooks/usePagination';
-import Swal from 'sweetalert2';
-import { useNavigate } from 'react-router';
-import { FaTimes } from 'react-icons/fa';
+import React, { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import useSecureAxios from "../../../../hooks/useSecureAxios";
+import usePagination from "../../../../hooks/usePagination";
+import Swal from "sweetalert2";
+import { useNavigate } from "react-router";
+import { FaTimes } from "react-icons/fa";
 
 const AllMeals = () => {
   const axiosSecure = useSecureAxios();
   const navigate = useNavigate();
 
-  const [sortField, setSortField] = useState('likes');
-  const [sortOrder, setSortOrder] = useState('desc');
-  const [search, setSearch] = useState('');
-  const [searchDebounced, setSearchDebounced] = useState('');
+  const [sortField, setSortField] = useState("likes");
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [search, setSearch] = useState("");
+  const [searchDebounced, setSearchDebounced] = useState("");
 
   // Pagination hook
   const {
@@ -35,8 +35,12 @@ const AllMeals = () => {
   }, [search]);
 
   // Fetch meals
-  const { data = {}, isLoading, refetch } = useQuery({
-    queryKey: ['meals', page, sortField, sortOrder, searchDebounced],
+  const {
+    data = {},
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["meals", page, sortField, sortOrder, searchDebounced],
     queryFn: async () => {
       const res = await axiosSecure.get(
         `/meals?sort=${sortField}&order=${sortOrder}&search=${searchDebounced}&page=${page}&limit=${limit}`
@@ -56,27 +60,31 @@ const AllMeals = () => {
 
   const handleDelete = async (id) => {
     const confirm = await Swal.fire({
-      title: 'Are you sure?',
-      text: 'You are about to delete this meal.',
-      icon: 'warning',
+      title: "Are you sure?",
+      text: "You are about to delete this meal.",
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#aaa',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#aaa",
+      confirmButtonText: "Yes, delete it!",
     });
 
-    if (confirm.isConfirmed) {
+    try {
       const res = await axiosSecure.delete(`/meals/${id}`);
       if (res.data.deletedCount > 0) {
-        Swal.fire('Deleted!', 'Meal has been deleted.', 'success');
+        Swal.fire("Deleted!", "Meal has been deleted.", "success");
         refetch();
       }
+    } catch (err) {
+      Swal.fire("Error", "Failed to delete meal", "error");
     }
   };
 
   return (
     <div className="max-w-full w-full">
-      <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">📋 All Meals Management</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-center mb-6">
+        📋 All Meals Management
+      </h2>
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -95,7 +103,7 @@ const AllMeals = () => {
           {search && (
             <button
               className="absolute right-2 top-2 text-gray-400 hover:text-red-500"
-              onClick={() => setSearch('')}
+              onClick={() => setSearch("")}
               aria-label="Clear search"
             >
               <FaTimes />
@@ -145,7 +153,10 @@ const AllMeals = () => {
             {isLoading ? (
               [...Array(limit)].map((_, i) => (
                 <tr key={i}>
-                  <td colSpan="7" className="py-4 animate-pulse text-center text-gray-300">
+                  <td
+                    colSpan="7"
+                    className="py-4 animate-pulse text-center text-gray-300"
+                  >
                     Loading...
                   </td>
                 </tr>
@@ -168,7 +179,9 @@ const AllMeals = () => {
                   <td>
                     <div className="flex flex-wrap justify-center gap-2">
                       <button
-                        onClick={() => navigate(`/dashboard/update-meal/${meal._id}`)}
+                        onClick={() =>
+                          navigate(`/dashboard/update-meal/${meal._id}`)
+                        }
                         className="btn btn-sm btn-info"
                       >
                         Update
@@ -209,7 +222,9 @@ const AllMeals = () => {
             <button
               key={i}
               onClick={() => goToPage(i + 1)}
-              className={`btn btn-sm ${page === i + 1 ? 'btn-primary' : 'btn-outline'}`}
+              className={`btn btn-sm ${
+                page === i + 1 ? "btn-primary" : "btn-outline"
+              }`}
             >
               {i + 1}
             </button>
